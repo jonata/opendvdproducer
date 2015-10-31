@@ -1,0 +1,6 @@
+dvdat (15.06.1) utopic; urgency=low
+
+  * Fixed convert tool
+  * Fixed first play
+
+ -- Jonatã Bolzan Loss <jbolzan@bethel.jw.org>  Tue, 19 Jun 2015 10:05:33 -0300

@@ -1,0 +1,13 @@
+Source: dvdat
+Section: misc
+Priority: optional
+Maintainer: Jonatã Bolzan Loss <jbolzan@bra.wtbts.net>
+XSBC-Oiriginal-Maintainer: Jonatã Bolzan Loss <jbolzan@bra.wtbts.net>
+Standards-Version: 3.7.2
+Build-Depends: debhelper (>= 5)
+Homepage: http://jw.org/
+
+Package: dvdat
+Architecture: all
+Depends: python (>=2.5), python-pyside.qtgui, python-pyside.qtcore, ttf-ubuntu-font-family, ffmpeg, dvdauthor, imagemagick
+Description: DVD Authoring Tool
