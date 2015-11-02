@@ -14,7 +14,7 @@ VERSION = str(open('debian/changelog').read()).split('(')[1].split(')')[0]
 if sys.platform == 'darwin':
     OPTIONS = {'py2app':  {
                     'argv_emulation': True,
-                    'iconfile':'pixmaps/dvdat.icns',
+                    'iconfile':'pixmaps/opendvdproducer.icns',
                     'emulate_shell_environment':True,
                     'frameworks':[  'libs/libMagickCore-6.Q16.1.dylib',
                                     'libs/libiconv.2.dylib',
@@ -63,6 +63,6 @@ setup(
 if sys.platform == 'darwin':
     #subprocess.call(['otool', '-L', 'binary'])
     #subprocess.call(['install_name_tool', '-change', '/usr/local/lib/libfreetype.6.dylib', '@executable_path/../Frameworks/libfreetype.6.dylib'])
-    #subprocess.call(['rm', 'dist/DVD Authoring Tool.app/Contents/Resources/mkisofs'])
-    #subprocess.call(['cp', 'resources/mkisofs', 'dist/DVD Authoring Tool.app/Contents/Resources/mkisofs'])
-    subprocess.call(['chmod', '-R', '777', 'dist/DVD Authoring Tool.app'])
+    #subprocess.call(['rm', 'dist/Open DVD Producer.app/Contents/Resources/mkisofs'])
+    #subprocess.call(['cp', 'resources/mkisofs', 'dist/Open DVD Producer.app/Contents/Resources/mkisofs'])
+    subprocess.call(['chmod', '-R', '777', 'dist/Open DVD Producer.app'])

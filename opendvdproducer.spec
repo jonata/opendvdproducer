@@ -2,8 +2,8 @@
 
 import os
 
-a = Analysis(['dvdat.py'],
-             pathex=['C:\\Users\\jbolzan\\Dropbox\\dvdAT'],
+a = Analysis(['opendvdproducer.py'],
+             pathex=['C:\\Users\\jbolzan\\Downloads\\opendvdproducer'],
              hiddenimports=[],
              hookspath=None,
              runtime_hooks=None)
@@ -28,10 +28,10 @@ exe = EXE(pyz,
           a.binaries,
           a.zipfiles,
           a.datas,
-          name='DVD Authoring Tool.exe',
+          name='opendvdproducer.exe',
           debug=False,
           strip=None,
           upx=True,
           onefile=True,
           console=False,
-          icon='pixmaps\\dvdat.ico')
+          icon='pixmaps\\opendvdproducer.ico')

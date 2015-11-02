@@ -1,0 +1,12 @@
+[Desktop Entry]
+Encoding=UTF-8
+Name=Open DVD Producer
+Exec=python /usr/share/opendvdproducer/opendvdproducer.py
+Icon=opendvdproducer.png
+Info=Open DVD Producer
+Categories=Application;Multimedia
+Comment=A modern, open source cross platform software for producing DVDs
+Terminal=false
+Type=Application
+StartupNotify=true
+Name[pt_BR]=Open DVD Producer
