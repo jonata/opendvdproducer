@@ -8,7 +8,8 @@ Usage:
 from setuptools import setup
 import os, sys, subprocess
 
-APP = ['dvdat.py']
+APP = ['opendvdproducer.py']
+NAME = str(open('debian/changelog').read()).split(' (')[0]
 VERSION = str(open('debian/changelog').read()).split('(')[1].split(')')[0]
 if sys.platform == 'darwin':
     OPTIONS = {'py2app':  {
@@ -23,29 +24,35 @@ if sys.platform == 'darwin':
                                     ],
                 }}
     REQUIRES = ['py2app']
+    share_or_resources = ''
 else:
     OPTIONS = {}
     REQUIRES = []
+    share_or_resources = 'share/' + NAME + '/'
 
 DATA_FILES = []
 for filename in os.listdir('graphics'):
     filepath = 'graphics' + os.sep + filename
     if os.path.isfile(filepath) and (filepath.endswith('png') or filepath.endswith('mkv')):
-        DATA_FILES.append(('graphics', [filepath]))
+        DATA_FILES.append((share_or_resources + 'graphics', [filepath]))
 
 for filename in os.listdir('resources'):
     filepath = 'resources' + os.sep + filename
     if os.path.isfile(filepath):
         #if filename in ['convert', 'spumux', 'dvdauthor','mkisofs','ffmpeg','ffprobe','iso2ddp_mac']:
         #    DATA_FILES.append(('', [filepath]))
-        if filepath.endswith('ttf') or filepath.endswith('flac') or (sys.platform == 'darwin' and (not filepath.endswith('exe') and not filepath.endswith('dll'))):
-            DATA_FILES.append(('', [filepath]))
+        if filepath.endswith('flac') or (not sys.platform.startswith('linux') and filepath.endswith('ttf')) or (sys.platform == 'darwin' and (not filepath.endswith('exe') and not filepath.endswith('dll'))):
+            DATA_FILES.append((share_or_resources + '', [filepath]))
 
 if sys.platform == 'darwin':
     DATA_FILES.append(('../PlugIns/phonon_backend', ['/Developer/Applications/Qt/plugins/phonon_backend/libphonon_qt7.dylib']))
-
+elif sys.platform.startswith('linux'):
+    DATA_FILES.append(('bin', ['bin/' + NAME]))
+    DATA_FILES.append(('share/applications', ['bin/' + NAME + '.desktop']))
+    DATA_FILES.append(('share/pixmaps', ['pixmaps/' + NAME + '.png']))
+    DATA_FILES.append(('share/' + NAME, [NAME + '.py']))
 setup(
-    name='DVD Authoring Tool',
+    name='Open DVD Producer',
     version=VERSION,
     app=APP,
     data_files=DATA_FILES,

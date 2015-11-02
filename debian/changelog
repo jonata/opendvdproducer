@@ -1,6 +1,5 @@
-dvdat (15.06.1) utopic; urgency=low
+opendvdproducer (15.11) wily; urgency=low
 
-  * Fixed convert tool
-  * Fixed first play
+  * First release
 
- -- Jonatã Bolzan Loss <jbolzan@bethel.jw.org>  Tue, 19 Jun 2015 10:05:33 -0300
+ -- Jonatã Bolzan Loss <jonata@jonata.org>  Tue, 01 Nov 2015 22:28:33 -0200

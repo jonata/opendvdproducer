@@ -1,13 +1,13 @@
-Source: dvdat
-Section: misc
+Source: opendvdproducer
+Section: multimedia
 Priority: optional
-Maintainer: Jonatã Bolzan Loss <jbolzan@bra.wtbts.net>
-XSBC-Oiriginal-Maintainer: Jonatã Bolzan Loss <jbolzan@bra.wtbts.net>
+Maintainer: Jonatã Bolzan Loss <jonata@jonata.org>
+XSBC-Oiriginal-Maintainer: Jonatã Bolzan Loss <jonata@jonata.org>
 Standards-Version: 3.7.2
 Build-Depends: debhelper (>= 5)
-Homepage: http://jw.org/
+Homepage: http://opendvdproducer.jonata.org/
 
-Package: dvdat
+Package: opendvdproducer
 Architecture: all
-Depends: python (>=2.5), python-pyside.qtgui, python-pyside.qtcore, ttf-ubuntu-font-family, ffmpeg, dvdauthor, imagemagick
-Description: DVD Authoring Tool
+Depends: python (>=2.5), python-pyside.qtgui, python-pyside.qtcore, ttf-ubuntu-font-family, ffmpeg, dvdauthor, imagemagick, python-pyside.phonon,  genisoimage
+Description: Open DVD Producer

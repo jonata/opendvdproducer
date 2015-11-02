@@ -1,0 +1,6 @@
+README
+setup.py
+Open_DVD_Producer.egg-info/PKG-INFO
+Open_DVD_Producer.egg-info/SOURCES.txt
+Open_DVD_Producer.egg-info/dependency_links.txt
+Open_DVD_Producer.egg-info/top_level.txt
