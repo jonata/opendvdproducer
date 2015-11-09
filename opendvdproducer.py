@@ -2382,7 +2382,7 @@ def read_project_file(self):
     self.selected_video_encoding = 'CBR'
     self.selected_menu_twopass = False
     self.selected_video_twopass = False
-    self.has_menus = False
+    self.has_menus = True
 
     self.project_name = project_file_content.split('<dvd ')[1].split('</dvd>')[0].split('name="')[1].split('"')[0]
     self.selected_aspect_ratio = int(project_file_content.split('<dvd ')[1].split('</dvd>')[0].split('aspect_ratio="')[1].split('"')[0])
@@ -2411,8 +2411,8 @@ def read_project_file(self):
     if 'audio_datarate="' in project_file_content.split('<dvd ')[1].split('</dvd>')[0]:
         self.selected_audio_datarate = project_file_content.split('<dvd ')[1].split('</dvd>')[0].split('audio_datarate="')[1].split('"')[0]
     if 'has_menus="' in project_file_content.split('<dvd ')[1].split('</dvd>')[0]:
-        if project_file_content.split('<dvd ')[1].split('</dvd>')[0].split('has_menus="')[1].split('"')[0] == 'True':
-            self.has_menus = True
+        if project_file_content.split('<dvd ')[1].split('</dvd>')[0].split('has_menus="')[1].split('"')[0] == 'False':
+            self.has_menus = False
 
     if '<menu ' in project_file_content.split('<menus>')[1].split('</menus>')[0]:
         for menu_item in project_file_content.split('<menus>')[1].split('</menus>')[0].split('<menu '):
