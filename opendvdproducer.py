@@ -18,7 +18,7 @@ else:
 #os.path.realpath(__file__)#os.path.abspath(os.path.dirname(sys.argv[0]))
 
 path_graphics = os.path.join(path_opendvdproducer, 'graphics')
-path_home = os.environ.get('HOME', None)
+path_home = os.path.expanduser("~")
 
 path_tmp = os.path.join(tempfile.gettempdir(), 'opendvdproducer-' + str(random.randint(1000,9999)))
 
@@ -761,15 +761,16 @@ class generate_dvd_thread(QtCore.QThread):
         else:
             print "NÃO GEROU ISO"
 
+        shutil.rmtree(os.path.join(path_tmp, 'dvd'), ignore_errors=True)
         self.signal.sig.emit('FINISH')
 
 class main_window(QtGui.QWidget):
     def __init__(self, parent=None):
         QtGui.QWidget.__init__(self, parent)
         self.setWindowTitle('Open DVD Producer')
-        self.resize(1200, 810)
-        self.setMaximumSize(self.width(), self.height())
-        self.setMinimumSize(self.width(), self.height())
+
+        #self.setMaximumSize(self.width(), self.height())
+        #self.setMinimumSize(self.width(), self.height())
         self.setWindowIcon(QtGui.QIcon(os.path.join(path_graphics, 'opendvdproducer.png')))
         self.move((QtGui.QDesktopWidget().screenGeometry().width()-self.geometry().width())/2, (QtGui.QDesktopWidget().screenGeometry().height()-self.geometry().height())/2)
 
@@ -779,16 +780,14 @@ class main_window(QtGui.QWidget):
         self.resolutions = []
 
         self.main_panel = QtGui.QWidget(parent=self)
-        self.main_panel.setGeometry(0, 0, self.width(), self.height())
 
         self.content_panel = QtGui.QWidget(parent=self.main_panel)
-        self.content_panel.setGeometry(0,-40,self.main_panel.width(),self.main_panel.height()+120)
         self.content_panel_animation = QtCore.QPropertyAnimation(self.content_panel, 'geometry')
         self.content_panel_animation.setEasingCurve(QtCore.QEasingCurve.OutCirc)
 
         self.content_panel_background = QtGui.QLabel(parent=self.content_panel)
-        self.content_panel_background.setGeometry(0,0,self.content_panel.width(), self.content_panel.height())
         self.content_panel_background.setPixmap(os.path.join(path_graphics, 'content_panel_background.png'))
+        self.content_panel_background.setScaledContents(True)
 
         class preview(QtGui.QWidget):
             def paintEvent(widget, paintEvent):
@@ -1093,16 +1092,15 @@ class main_window(QtGui.QWidget):
         Phonon.createPath(self.preview_video_obj, self.preview_video_widget)
 
         self.options_panel = QtGui.QWidget(parent=self.content_panel)
-        self.options_panel.setGeometry(820,120,380,730)
         self.options_panel_animation = QtCore.QPropertyAnimation(self.options_panel, 'geometry')
         self.options_panel_animation.setEasingCurve(QtCore.QEasingCurve.OutCirc)
 
         self.options_panel_background = QtGui.QLabel(parent=self.options_panel)
-        self.options_panel_background.setGeometry(0,0,self.options_panel.width(), self.options_panel.height())
         self.options_panel_background.setPixmap(os.path.join(path_graphics, 'options_panel_background.png'))
+        self.options_panel_background.setScaledContents(True)
+
 
         self.options_panel_dvd_panel = QtGui.QWidget(parent=self.options_panel)
-        self.options_panel_dvd_panel.setGeometry(10,0,self.options_panel.width()-10,self.options_panel.height())
 
         class options_panel_dvd_panel_dvd_image(QtGui.QWidget):
             def paintEvent(widget, paintEvent):
@@ -1291,13 +1289,10 @@ class main_window(QtGui.QWidget):
         self.options_panel_dvd_panel_audio_datarate.activated.connect(lambda:options_panel_dvd_panel_audio_datarate_changed(self))
 
         self.options_panel_menu_panel = QtGui.QWidget(parent=self.options_panel)
-        self.options_panel_menu_panel.setGeometry(10,0,self.options_panel.width()-10,self.options_panel.height())
 
         self.options_panel_menu_buttons_label = QtGui.QLabel('BUTTONS', parent=self.options_panel_menu_panel)
-        self.options_panel_menu_buttons_label.setGeometry(10,35,self.options_panel_menu_panel.width()-20,15)
 
         self.options_panel_menu_buttons = QtGui.QListWidget(parent=self.options_panel_menu_panel)
-        self.options_panel_menu_buttons.setGeometry(10,50,self.options_panel_menu_panel.width()-80,190)
         self.options_panel_menu_buttons.clicked.connect(lambda:menu_button_selected(self))
 
         self.options_panel_menu_buttons_add = QtGui.QPushButton(parent=self.options_panel_menu_panel)
@@ -1318,51 +1313,39 @@ class main_window(QtGui.QWidget):
         self.options_panel_menu_buttons_edit.setEnabled(False)
 
         self.options_panel_menu_buttons_edit_field = QtGui.QLineEdit(parent=self.options_panel_menu_panel)
-        self.options_panel_menu_buttons_edit_field.setGeometry(10,245,self.options_panel_menu_panel.width()-90,30)
         self.options_panel_menu_buttons_edit_field.textEdited.connect(lambda:edit_field_menu_changed(self))
         self.options_panel_menu_buttons_edit_field.setShown(False)
 
         self.options_panel_menu_buttons_edit_confirm = QtGui.QPushButton(parent=self.options_panel_menu_panel)
-        self.options_panel_menu_buttons_edit_confirm.setGeometry(self.options_panel_menu_panel.width()-75,245,30,30)
         self.options_panel_menu_buttons_edit_confirm.setIcon(QtGui.QPixmap(os.path.join(path_graphics, 'confirm.png')))
         self.options_panel_menu_buttons_edit_confirm.clicked.connect(lambda:edit_confirm_menu_button(self))
         self.options_panel_menu_buttons_edit_confirm.setShown(False)
 
         self.options_panel_menu_buttons_edit_cancel = QtGui.QPushButton(parent=self.options_panel_menu_panel)
-        self.options_panel_menu_buttons_edit_cancel.setGeometry(self.options_panel_menu_panel.width()-40,245,30,30)
         self.options_panel_menu_buttons_edit_cancel.setIcon(QtGui.QPixmap(os.path.join(path_graphics, 'cancel.png')))
         self.options_panel_menu_buttons_edit_cancel.clicked.connect(lambda:edit_cancel_menu_button(self))
         self.options_panel_menu_buttons_edit_cancel.setShown(False)
 
         self.options_panel_menu_buttons_position_box = QtGui.QWidget(parent=self.options_panel_menu_panel)
-        self.options_panel_menu_buttons_position_box.setGeometry(self.options_panel_menu_panel.width()-60,50,50,215)
 
         self.options_panel_menu_buttons_x_position_label = QtGui.QLabel('<small>X POSITION</small>', parent=self.options_panel_menu_buttons_position_box)
-        self.options_panel_menu_buttons_x_position_label.setGeometry(0,0,self.options_panel_menu_buttons_position_box.width(),15)
 
         self.options_panel_menu_buttons_x_position = QtGui.QSpinBox(parent=self.options_panel_menu_buttons_position_box)
-        self.options_panel_menu_buttons_x_position.setGeometry(0, 15, self.options_panel_menu_buttons_position_box.width(), 20)
         self.options_panel_menu_buttons_x_position.editingFinished.connect(lambda:menu_buttons_set_geometry(self))
 
         self.options_panel_menu_buttons_y_position_label = QtGui.QLabel('<small>Y POSITION</small>', parent=self.options_panel_menu_buttons_position_box)
-        self.options_panel_menu_buttons_y_position_label.setGeometry(0,40,self.options_panel_menu_buttons_position_box.width(),15)
 
         self.options_panel_menu_buttons_y_position = QtGui.QSpinBox(parent=self.options_panel_menu_buttons_position_box)
-        self.options_panel_menu_buttons_y_position.setGeometry(0, 55, self.options_panel_menu_buttons_position_box.width(), 20)
         self.options_panel_menu_buttons_y_position.editingFinished.connect(lambda:menu_buttons_set_geometry(self))
 
         self.options_panel_menu_buttons_width_label = QtGui.QLabel('<small>WIDTH</small>', parent=self.options_panel_menu_buttons_position_box)
-        self.options_panel_menu_buttons_width_label.setGeometry(0,80,self.options_panel_menu_buttons_position_box.width(),15)
 
         self.options_panel_menu_buttons_width = QtGui.QSpinBox(parent=self.options_panel_menu_buttons_position_box)
-        self.options_panel_menu_buttons_width.setGeometry(0, 95, self.options_panel_menu_buttons_position_box.width(), 20)
         self.options_panel_menu_buttons_width.editingFinished.connect(lambda:menu_buttons_set_geometry(self))
 
         self.options_panel_menu_buttons_height_label = QtGui.QLabel('<small>HEIGHT</small>', parent=self.options_panel_menu_buttons_position_box)
-        self.options_panel_menu_buttons_height_label.setGeometry(0,120,self.options_panel_menu_buttons_position_box.width(),15)
 
         self.options_panel_menu_buttons_height = QtGui.QSpinBox(parent=self.options_panel_menu_buttons_position_box)
-        self.options_panel_menu_buttons_height.setGeometry(0, 135, self.options_panel_menu_buttons_position_box.width(), 20)
         self.options_panel_menu_buttons_height.editingFinished.connect(lambda:menu_buttons_set_geometry(self))
 
         self.options_panel_menu_buttons_jumpto_label = QtGui.QLabel('JUMP TO', parent=self.options_panel_menu_panel)
@@ -1405,99 +1388,80 @@ class main_window(QtGui.QWidget):
         self.options_panel_menu_buttons_directions_left.activated.connect(lambda:button_directions_selected(self))
 
         self.options_panel_video_panel = QtGui.QWidget(parent=self.options_panel)
-        self.options_panel_video_panel.setGeometry(10,50,self.options_panel.width()-10,self.options_panel.height()-50)
 
         self.options_panel_video_intro_video_checkbox = QtGui.QCheckBox('This is the intro video', parent=self.options_panel_video_panel)
-        self.options_panel_video_intro_video_checkbox.setGeometry(10,0,self.options_panel_video_panel.width()-20,25)
         self.options_panel_video_intro_video_checkbox.clicked.connect(lambda:set_intro_video(self))
 
         self.options_panel_video_reencode_video_checkbox = QtGui.QCheckBox('Reencode this video', parent=self.options_panel_video_panel)
-        self.options_panel_video_reencode_video_checkbox.setGeometry(10,35,self.options_panel_video_panel.width()-20,25)
         self.options_panel_video_reencode_video_checkbox.clicked.connect(lambda:set_reencode_video(self))
 
         self.options_panel_video_resolution_combo = QtGui.QComboBox(parent=self.options_panel_video_panel)
-        self.options_panel_video_resolution_combo.setGeometry(10,70,self.options_panel_video_panel.width()-20,25)
         self.options_panel_video_resolution_combo.activated.connect(lambda:video_resolution_combo_selected(self))
 
         self.options_panel_video_jumpto_label = QtGui.QLabel('JUMP TO', parent=self.options_panel_video_panel)
-        self.options_panel_video_jumpto_label.setGeometry(10,105,self.options_panel_video_panel.width()-20,15)
 
         self.options_panel_video_jumpto = QtGui.QComboBox(parent=self.options_panel_video_panel)
-        self.options_panel_video_jumpto.setGeometry(10,120,self.options_panel_video_panel.width()-20,25)
         self.options_panel_video_jumpto.activated.connect(lambda:video_jumpto_selected(self))
 
         self.options_panel_video_chapters_list = QtGui.QListWidget(parent=self.options_panel_video_panel)
-        self.options_panel_video_chapters_list.setGeometry(10,155,self.options_panel_video_panel.width()-20,self.options_panel_video_panel.height()-205)
         self.options_panel_video_chapters_list.clicked.connect(lambda:chapter_selected(self))
 
         self.options_panel_video_chapters_name_label = QtGui.QLabel('<small>CHAPTER NAME</small>', parent=self.options_panel_video_panel)
-        self.options_panel_video_chapters_name_label.setGeometry(10,self.options_panel_video_panel.height()-55,((self.options_panel_video_panel.width()-90)*.5)-5,15)
         self.options_panel_video_chapters_name_label.setShown(False)
 
         self.options_panel_video_chapters_name = QtGui.QLineEdit(parent=self.options_panel_video_panel)
-        self.options_panel_video_chapters_name.setGeometry(10,self.options_panel_video_panel.height()-40,((self.options_panel_video_panel.width()-90)*.5)-5,30)
         self.options_panel_video_chapters_name.textEdited.connect(lambda:check_chapter_name(self))
         self.options_panel_video_chapters_name.setShown(False)
 
         self.options_panel_video_chapters_timecode_label = QtGui.QLabel('<small>TIMECODE</small>', parent=self.options_panel_video_panel)
-        self.options_panel_video_chapters_timecode_label.setGeometry(((self.options_panel_video_panel.width()-90)*.5)+10,self.options_panel_video_panel.height()-55,((self.options_panel_video_panel.width()-90)*.5)-5,15)
         self.options_panel_video_chapters_timecode_label.setShown(False)
 
         self.options_panel_video_chapters_timecode = QtGui.QLineEdit(parent=self.options_panel_video_panel)
-        self.options_panel_video_chapters_timecode.setGeometry(((self.options_panel_video_panel.width()-90)*.5)+10,self.options_panel_video_panel.height()-40,((self.options_panel_video_panel.width()-90)*.5)-5,30)
         self.options_panel_video_chapters_timecode.textEdited.connect(lambda:check_chapter_name(self))
         self.options_panel_video_chapters_timecode.setShown(False)
 
         self.options_panel_video_chapters_edit_confirm = QtGui.QPushButton(parent=self.options_panel_video_panel)
         self.options_panel_video_chapters_edit_confirm.clicked.connect(lambda:confirm_edit_chapter(self))
         self.options_panel_video_chapters_edit_confirm.setIcon(QtGui.QPixmap(os.path.join(path_graphics, 'confirm.png')))
-        self.options_panel_video_chapters_edit_confirm.setGeometry(self.options_panel_video_panel.width()-75,self.options_panel_video_panel.height()-40,30,30)
         self.options_panel_video_chapters_edit_confirm.setShown(False)
 
         self.options_panel_video_chapters_edit_cancel = QtGui.QPushButton(parent=self.options_panel_video_panel)
         self.options_panel_video_chapters_edit_cancel.clicked.connect(lambda:hide_edit_chapter(self))
         self.options_panel_video_chapters_edit_cancel.setIcon(QtGui.QPixmap(os.path.join(path_graphics, 'cancel.png')))
-        self.options_panel_video_chapters_edit_cancel.setGeometry(self.options_panel_video_panel.width()-40,self.options_panel_video_panel.height()-40,30,30)
         self.options_panel_video_chapters_edit_cancel.setShown(False)
 
         self.options_panel_video_chapters_add = QtGui.QPushButton(parent=self.options_panel_video_panel)
-        self.options_panel_video_chapters_add.setGeometry(10,self.options_panel_video_panel.height()-40,30,30)
         self.options_panel_video_chapters_add.setIcon(QtGui.QPixmap(os.path.join(path_graphics, 'add.png')))
         self.options_panel_video_chapters_add.clicked.connect(lambda:add_chapter(self))
 
         self.options_panel_video_chapters_remove = QtGui.QPushButton(parent=self.options_panel_video_panel)
-        self.options_panel_video_chapters_remove.setGeometry(45,self.options_panel_video_panel.height()-40,30,30)
         self.options_panel_video_chapters_remove.clicked.connect(lambda:remove_chapter(self))
         self.options_panel_video_chapters_remove.setIcon(QtGui.QPixmap(os.path.join(path_graphics, 'remove.png')))
         self.options_panel_video_chapters_remove.setEnabled(False)
 
         self.options_panel_video_chapters_edit = QtGui.QPushButton(parent=self.options_panel_video_panel)
-        self.options_panel_video_chapters_edit.setGeometry(80,self.options_panel_video_panel.height()-40,30,30)
         self.options_panel_video_chapters_edit.clicked.connect(lambda:edit_chapter(self))
         self.options_panel_video_chapters_edit.setIcon(QtGui.QPixmap(os.path.join(path_graphics, 'edit.png')))
         self.options_panel_video_chapters_edit.setEnabled(False)
 
         self.options_panel_video_chapters_import = QtGui.QPushButton(parent=self.options_panel_video_panel)
-        self.options_panel_video_chapters_import.setGeometry(self.options_panel_video_chapters_list.width() - 20,self.options_panel_video_panel.height()-40,30,30)
         self.options_panel_video_chapters_import.setIcon(QtGui.QPixmap(os.path.join(path_graphics, 'import.png')))
         self.options_panel_video_chapters_import.clicked.connect(lambda:import_chapters(self))
 
         self.nowediting_panel = QtGui.QWidget(parent=self.main_panel)
-        self.nowediting_panel.setGeometry(0,-40,self.main_panel.width(),170)
+
         self.nowediting_panel_animation = QtCore.QPropertyAnimation(self.nowediting_panel, 'geometry')
         self.nowediting_panel_animation.setEasingCurve(QtCore.QEasingCurve.OutCirc)
 
         self.nowediting_dvd_panel = QtGui.QWidget(parent=self.nowediting_panel)
-        self.nowediting_dvd_panel.setGeometry(0,-170,self.nowediting_panel.width(),self.nowediting_panel.height())
         self.nowediting_dvd_panel_animation = QtCore.QPropertyAnimation(self.nowediting_dvd_panel, 'geometry')
         self.nowediting_dvd_panel_animation.setEasingCurve(QtCore.QEasingCurve.OutCirc)
 
         self.nowediting_dvd_panel_background = QtGui.QLabel(parent=self.nowediting_dvd_panel)
-        self.nowediting_dvd_panel_background.setGeometry(0,0,self.nowediting_dvd_panel.width(),self.nowediting_dvd_panel.height())
         self.nowediting_dvd_panel_background.setPixmap(os.path.join(path_graphics, 'nowediting_dvd_panel_background.png'))
+        self.nowediting_dvd_panel_background.setAlignment(QtCore.Qt.AlignVCenter | QtCore.Qt.AlignLeft)
 
         self.nowediting_dvd_panel_project_name_label = QtGui.QLabel(parent=self.nowediting_dvd_panel)
-        self.nowediting_dvd_panel_project_name_label.setGeometry(10,10,(self.nowediting_dvd_panel.width()*.5)-10,20)
         self.nowediting_dvd_panel_project_name_label.setForegroundRole(QtGui.QPalette.Midlight)
         self.nowediting_dvd_panel_project_name_label.setText('PROJECT NAME')
 
@@ -1584,64 +1548,54 @@ class main_window(QtGui.QWidget):
         self.nowediting_dvd_panel_has_menus_background.setGeometry(0,0,self.nowediting_dvd_panel_has_menus.width(),self.nowediting_dvd_panel_has_menus.height())
 
         self.nowediting_menus_panel = QtGui.QWidget(parent=self.nowediting_panel)
-        self.nowediting_menus_panel.setGeometry(0,-170,self.nowediting_panel.width(),self.nowediting_panel.height())
         self.nowediting_menus_panel_animation = QtCore.QPropertyAnimation(self.nowediting_menus_panel, 'geometry')
         self.nowediting_menus_panel_animation.setEasingCurve(QtCore.QEasingCurve.OutCirc)
 
         self.nowediting_menus_panel_background = QtGui.QLabel(parent=self.nowediting_menus_panel)
-        self.nowediting_menus_panel_background.setGeometry(0,0,self.nowediting_menus_panel.width(),self.nowediting_menus_panel.height())
         self.nowediting_menus_panel_background.setPixmap(os.path.join(path_graphics, 'nowediting_menus_panel_background.png'))
+        self.nowediting_menus_panel_background.setAlignment(QtCore.Qt.AlignVCenter | QtCore.Qt.AlignLeft)
 
         self.nowediting_menus_panel_list = QtGui.QListWidget(parent=self.nowediting_menus_panel)
-        self.nowediting_menus_panel_list.setGeometry(10,10,self.nowediting_menus_panel.width()-60,self.nowediting_menus_panel.height()-70)
         self.nowediting_menus_panel_list.setViewMode(QtGui.QListView.IconMode)
         self.nowediting_menus_panel_list.clicked.connect(lambda:menu_selected(self))
 
         self.nowediting_menus_panel_add = QtGui.QPushButton(parent=self.nowediting_menus_panel)
-        self.nowediting_menus_panel_add.setGeometry(self.nowediting_menus_panel.width()-40,40,30,30)
         self.nowediting_menus_panel_add.setIcon(QtGui.QPixmap(os.path.join(path_graphics, 'add.png')))
         self.nowediting_menus_panel_add.clicked.connect(lambda:add_menu(self))
 
         self.nowediting_menus_panel_remove = QtGui.QPushButton(parent=self.nowediting_menus_panel)
-        self.nowediting_menus_panel_remove.setGeometry(self.nowediting_menus_panel.width()-40,80,30,30)
         self.nowediting_menus_panel_remove.clicked.connect(lambda:remove_menu(self))
         self.nowediting_menus_panel_remove.setIcon(QtGui.QPixmap(os.path.join(path_graphics, 'remove.png')))
         self.nowediting_menus_panel_remove.setEnabled(False)
 
         self.nowediting_videos_panel = QtGui.QWidget(parent=self.nowediting_panel)
-        self.nowediting_videos_panel.setGeometry(0,-170,self.nowediting_panel.width(),self.nowediting_panel.height())
         self.nowediting_videos_panel_animation = QtCore.QPropertyAnimation(self.nowediting_videos_panel, 'geometry')
         self.nowediting_videos_panel_animation.setEasingCurve(QtCore.QEasingCurve.OutCirc)
 
         self.nowediting_videos_panel_background = QtGui.QLabel(parent=self.nowediting_videos_panel)
-        self.nowediting_videos_panel_background.setGeometry(0,0,self.nowediting_videos_panel.width(),self.nowediting_videos_panel.height())
         self.nowediting_videos_panel_background.setPixmap(os.path.join(path_graphics, 'nowediting_videos_panel_background.png'))
+        self.nowediting_videos_panel_background.setAlignment(QtCore.Qt.AlignVCenter | QtCore.Qt.AlignLeft)
 
         self.nowediting_videos_panel_list = QtGui.QListWidget(parent=self.nowediting_videos_panel)
-        self.nowediting_videos_panel_list.setGeometry(10,10,self.nowediting_videos_panel.width()-60,self.nowediting_videos_panel.height()-70)
         self.nowediting_videos_panel_list.setViewMode(QtGui.QListView.IconMode)
         self.nowediting_videos_panel_list.clicked.connect(lambda:video_selected(self))
 
         self.nowediting_videos_panel_add = QtGui.QPushButton(parent=self.nowediting_videos_panel)
-        self.nowediting_videos_panel_add.setGeometry(self.nowediting_videos_panel.width()-40,40,30,30)
         self.nowediting_videos_panel_add.setIcon(QtGui.QPixmap(os.path.join(path_graphics, 'add.png')))
         self.nowediting_videos_panel_add.clicked.connect(lambda:add_video(self))
 
         self.nowediting_videos_panel_remove = QtGui.QPushButton(parent=self.nowediting_videos_panel)
-        self.nowediting_videos_panel_remove.setGeometry(self.nowediting_videos_panel.width()-40,80,30,30)
         self.nowediting_videos_panel_remove.clicked.connect(lambda:remove_video(self))
         self.nowediting_videos_panel_remove.setIcon(QtGui.QPixmap(os.path.join(path_graphics, 'remove.png')))
         self.nowediting_videos_panel_remove.setEnabled(False)
 
         self.top_panel = QtGui.QWidget(parent=self.main_panel)
-        self.top_panel.setGeometry(0,0,self.main_panel.width(),92)
 
         self.top_panel_background = QtGui.QLabel(parent=self.top_panel)
-        self.top_panel_background.setGeometry(0,0,self.top_panel.width(),self.top_panel.height())
         self.top_panel_background.setPixmap(os.path.join(path_graphics, 'top_panel_background.png'))
+        self.top_panel_background.setScaledContents(True)
 
         self.top_panel_project_name_label = QtGui.QLabel(parent=self.main_panel)
-        self.top_panel_project_name_label.setGeometry(20, 0, self.top_panel.width() , 80)
         self.top_panel_project_name_label.setAlignment(QtCore.Qt.AlignVCenter)
         self.top_panel_project_name_label.setForegroundRole(QtGui.QPalette.Light)
 
@@ -1679,7 +1633,6 @@ class main_window(QtGui.QWidget):
         self.nowediting_panel_videos_button_background.setPixmap(os.path.join(path_graphics, 'nowediting_videos_button_background.png'))
 
         self.videos_player_panel = QtGui.QWidget(parent=self.main_panel)
-        self.videos_player_panel.setGeometry(0,self.main_panel.height(),820,125)
         self.videos_player_panel_animation = QtCore.QPropertyAnimation(self.videos_player_panel, 'geometry')
         self.videos_player_panel_animation.setEasingCurve(QtCore.QEasingCurve.OutCirc)
 
@@ -1693,7 +1646,7 @@ class main_window(QtGui.QWidget):
                     if self.nowediting == 'videos':
                         for chapter in self.dict_of_videos[self.selected_video][1]:
                             text_size = painter.fontMetrics().width(chapter)
-                            mark = convert_timecode_to_miliseconds(self.dict_of_videos[self.selected_video][2][chapter]) / ((self.dict_of_videos[self.selected_video][5]*1000)/820)
+                            mark = convert_timecode_to_miliseconds(self.dict_of_videos[self.selected_video][2][chapter]) / ((self.dict_of_videos[self.selected_video][5]*1000)/self.main_panel.width()-380)
                             if chapter == self.selected_video_chapter:
                                 painter.setBrush(QtGui.QColor.fromRgb(80,80,80,a=200))
                             else:
@@ -1712,13 +1665,13 @@ class main_window(QtGui.QWidget):
                             painter.drawText(rectangle, QtCore.Qt.AlignLeft, chapter)
                     pixmap = QtGui.QPixmap(os.path.join(path_graphics, 'videos_player_timeline_seek.png'))
                     #print self.preview_video_obj.currentTime()
-                    painter.drawPixmap((self.preview_video_obj.currentTime() / ((self.dict_of_videos[self.selected_video][5]*1000)/820))-10,0,pixmap)
+                    painter.drawPixmap((self.preview_video_obj.currentTime() / ((self.dict_of_videos[self.selected_video][5]*1000)/self.main_panel.width()-380))-10,0,pixmap)
                 painter.end()
 
             def mousePressEvent(widget, event):
                 for chapter in self.dict_of_videos[self.selected_video][1]:
                     text_size = QtGui.QFontMetrics(QtGui.QFont("Ubuntu", 8)).width(chapter)
-                    mark = convert_timecode_to_miliseconds(self.dict_of_videos[self.selected_video][2][chapter]) / ((self.dict_of_videos[self.selected_video][5]*1000)/820)
+                    mark = convert_timecode_to_miliseconds(self.dict_of_videos[self.selected_video][2][chapter]) / ((self.dict_of_videos[self.selected_video][5]*1000)/self.main_panel.width()-380)
 
                     if event.pos().y() > 29.0 and event.pos().y() < 41.0 and event.pos().x() > mark and event.pos().x() < (mark + text_size + 10.0):
                         self.selected_video_chapter = chapter
@@ -1727,7 +1680,7 @@ class main_window(QtGui.QWidget):
                     else:
                         self.selected_video_chapter = None
                 if self.selected_video_chapter == None:
-                    self.preview_video_obj.seek(event.pos().x() * ((self.dict_of_videos[self.selected_video][5]*1000)/820) )
+                    self.preview_video_obj.seek(event.pos().x() * ((self.dict_of_videos[self.selected_video][5]*1000)/self.main_panel.width()-380) )
                 #if not self.preview_video_obj.state() in [Phonon.PlayingState , Phonon.BufferingState, Phonon.PausedState]:
                 #   video_pause(self)
                 update_timeline(self)
@@ -1743,13 +1696,12 @@ class main_window(QtGui.QWidget):
                 #
 
             def mouseMoveEvent(widget, event):
-                self.preview_video_obj.seek(event.pos().x() * ((self.dict_of_videos[self.selected_video][5]*1000)/820) )
+                self.preview_video_obj.seek(event.pos().x() * ((self.dict_of_videos[self.selected_video][5]*1000)/self.main_panel.width()-380) )
                 #if self.preview_video_obj.state() in [Phonon.PlayingState , Phonon.BufferingState, Phonon.PausedState]:
                 #self.preview_video_obj.seek(event.pos().x() * (self.preview_video_obj.totalTime()/820) )
                 update_timeline(self)
 
         self.videos_player_timeline = videos_player_timeline(parent=self.videos_player_panel)
-        self.videos_player_timeline.setGeometry(0,25,self.videos_player_panel.width(),100)
 
         self.videos_player_controls_panel = QtGui.QWidget(parent=self.videos_player_panel)
         self.videos_player_controls_panel.setGeometry(160,0,500,50)
@@ -1884,12 +1836,10 @@ class main_window(QtGui.QWidget):
         #self.videos_player_controls_panel_current_time.setText('<font style="font-size:32px;font-family=Segment7;color:#07334C">00:00:00:00</font>')
 
         self.menus_properties_panel = QtGui.QWidget(parent=self.main_panel)
-        self.menus_properties_panel.setGeometry(0,self.main_panel.height(),820,125)
         self.menus_properties_panel_animation = QtCore.QPropertyAnimation(self.menus_properties_panel, 'geometry')
         self.menus_properties_panel_animation.setEasingCurve(QtCore.QEasingCurve.OutCirc)
 
         self.menus_properties_panel_background = QtGui.QLabel(parent=self.menus_properties_panel)
-        self.menus_properties_panel_background.setGeometry(0,0,self.menus_properties_panel.width(),self.menus_properties_panel.height())
         self.menus_properties_panel_background.setPixmap(os.path.join(path_graphics, 'menus_properties_panel_background.png'))
 
         self.menus_properties_panel_background_file_label = QtGui.QLabel(parent=self.menus_properties_panel)
@@ -2018,7 +1968,6 @@ class main_window(QtGui.QWidget):
         self.menus_properties_panel_main_menu_checkbox_background.setGeometry(0,0,self.menus_properties_panel_main_menu_checkbox.width(),self.menus_properties_panel_main_menu_checkbox.height())
 
         self.lock_finalize_panel = QtGui.QWidget(parent=self.main_panel)
-        self.lock_finalize_panel.setGeometry(0,self.main_panel.height(),self.main_panel.width(),1300)#-370
         self.lock_finalize_panel_animation = QtCore.QPropertyAnimation(self.lock_finalize_panel, 'geometry')
         self.lock_finalize_panel_animation.setEasingCurve(QtCore.QEasingCurve.OutCirc)
 
@@ -2044,29 +1993,26 @@ class main_window(QtGui.QWidget):
         self.lock_finalize_panel_progress_bar_description.setShown(False)
 
         self.finalize_panel = QtGui.QWidget(parent=self.main_panel)
-        self.finalize_panel.setGeometry(self.main_panel.width(),0,370,110)#-370
         self.finalize_panel_animation = QtCore.QPropertyAnimation(self.finalize_panel, 'geometry')
         self.finalize_panel_animation.setEasingCurve(QtCore.QEasingCurve.OutCirc)
 
         self.finalize_panel_background = QtGui.QLabel(parent=self.finalize_panel)
-        self.finalize_panel_background.setGeometry(0,0,self.finalize_panel.width(),self.finalize_panel.height())
         self.finalize_panel_background.setPixmap(os.path.join(path_graphics, 'finalize_panel_background.png'))
 
         self.finalize_panel_generate_button = QtGui.QPushButton('Generate\nDVD', parent=self.finalize_panel)
-        self.finalize_panel_generate_button.setGeometry(self.finalize_panel.width() - 220,20,200,50)
         self.finalize_panel_generate_button.clicked.connect(lambda:dvd_generate(self))
 
         self.finalize_panel_generate_button_iso_checkbox = QtGui.QCheckBox('ISO', parent=self.finalize_panel_generate_button)
-        self.finalize_panel_generate_button_iso_checkbox.setGeometry(self.finalize_panel_generate_button.width() - 60, (self.finalize_panel_generate_button.height()/2) - 20, 50, 20)
         self.finalize_panel_generate_button_iso_checkbox.clicked.connect(lambda:set_generate_dvd_kind(self))
 
         self.finalize_panel_generate_button_ddp_checkbox = QtGui.QCheckBox('DDP', parent=self.finalize_panel_generate_button)
-        self.finalize_panel_generate_button_ddp_checkbox.setGeometry(self.finalize_panel_generate_button.width() - 60, self.finalize_panel_generate_button.height()/2, 50, 20)
         self.finalize_panel_generate_button_ddp_checkbox.clicked.connect(lambda:set_generate_dvd_kind(self))
 
         self.generate_dvd_thread_thread = generate_dvd_thread()
         self.generate_dvd_thread_thread.signal.sig.connect(self.generate_dvd_thread_thread_completed)
 
+        self.setGeometry(0, 0, QtGui.QDesktopWidget().screenGeometry().width(), QtGui.QDesktopWidget().screenGeometry().height())
+        self.showMaximized()
         clean_changes(self)
 
     def generate_dvd_thread_thread_completed(self, data):
@@ -2093,7 +2039,73 @@ class main_window(QtGui.QWidget):
     def closeEvent(self, event):
         shutil.rmtree(path_tmp, ignore_errors=True)
 
-
+    def resizeEvent(self, event):
+        self.main_panel.setGeometry(0, 0, self.width(), self.height())
+        self.top_panel.setGeometry(0,0,self.main_panel.width(),92)
+        self.content_panel.setGeometry(0,-40,self.main_panel.width(),self.main_panel.height()+120)
+        self.content_panel_background.setGeometry(0,0,self.content_panel.width(), self.content_panel.height())
+        self.options_panel.setGeometry(self.main_panel.width()-380,120,380,self.main_panel.height()-80)
+        self.options_panel_background.setGeometry(0,0,self.options_panel.width(), self.options_panel.height())
+        self.finalize_panel.setGeometry(self.main_panel.width(),0,370,110)
+        self.menus_properties_panel.setGeometry(0,self.main_panel.height(),self.main_panel.width(),125)
+        self.lock_finalize_panel.setGeometry(0,self.main_panel.height(),self.main_panel.width(),self.main_panel.height())#-370
+        self.videos_player_panel.setGeometry(0,self.main_panel.height(),self.main_panel.width()-380,125)
+        self.options_panel_dvd_panel.setGeometry(10,0,self.options_panel.width()-10,self.options_panel.height())
+        self.options_panel_menu_panel.setGeometry(10,0,self.options_panel.width()-10,self.options_panel.height())
+        self.options_panel_menu_buttons_label.setGeometry(10,35,self.options_panel_menu_panel.width()-20,15)
+        self.options_panel_menu_buttons.setGeometry(10,50,self.options_panel_menu_panel.width()-80,190)
+        self.options_panel_menu_buttons_edit_field.setGeometry(10,245,self.options_panel_menu_panel.width()-90,30)
+        self.options_panel_menu_buttons_edit_confirm.setGeometry(self.options_panel_menu_panel.width()-75,245,30,30)
+        self.options_panel_menu_buttons_edit_cancel.setGeometry(self.options_panel_menu_panel.width()-40,245,30,30)
+        self.options_panel_menu_buttons_position_box.setGeometry(self.options_panel_menu_panel.width()-60,50,50,215)
+        self.options_panel_menu_buttons_x_position_label.setGeometry(0,0,self.options_panel_menu_buttons_position_box.width(),15)
+        self.options_panel_menu_buttons_x_position_label.setGeometry(0,0,self.options_panel_menu_buttons_position_box.width(),15)
+        self.options_panel_menu_buttons_x_position.setGeometry(0, 15, self.options_panel_menu_buttons_position_box.width(), 20)
+        self.options_panel_menu_buttons_y_position_label.setGeometry(0,40,self.options_panel_menu_buttons_position_box.width(),15)
+        self.options_panel_menu_buttons_y_position.setGeometry(0, 55, self.options_panel_menu_buttons_position_box.width(), 20)
+        self.options_panel_menu_buttons_width_label.setGeometry(0,80,self.options_panel_menu_buttons_position_box.width(),15)
+        self.options_panel_menu_buttons_width.setGeometry(0, 95, self.options_panel_menu_buttons_position_box.width(), 20)
+        self.options_panel_menu_buttons_height_label.setGeometry(0,120,self.options_panel_menu_buttons_position_box.width(),15)
+        self.options_panel_menu_buttons_height.setGeometry(0, 135, self.options_panel_menu_buttons_position_box.width(), 20)
+        self.options_panel_video_panel.setGeometry(10,50,self.options_panel.width()-10,self.options_panel.height()-50)
+        self.options_panel_video_intro_video_checkbox.setGeometry(10,0,self.options_panel_video_panel.width()-20,25)
+        self.options_panel_video_reencode_video_checkbox.setGeometry(10,35,self.options_panel_video_panel.width()-20,25)
+        self.options_panel_video_resolution_combo.setGeometry(10,70,self.options_panel_video_panel.width()-20,25)
+        self.options_panel_video_jumpto_label.setGeometry(10,105,self.options_panel_video_panel.width()-20,15)
+        self.options_panel_video_jumpto.setGeometry(10,120,self.options_panel_video_panel.width()-20,25)
+        self.options_panel_video_chapters_list.setGeometry(10,155,self.options_panel_video_panel.width()-20,self.options_panel_video_panel.height()-205)
+        self.options_panel_video_chapters_name_label.setGeometry(10,self.options_panel_video_panel.height()-55,((self.options_panel_video_panel.width()-90)*.5)-5,15)
+        self.options_panel_video_chapters_name.setGeometry(10,self.options_panel_video_panel.height()-40,((self.options_panel_video_panel.width()-90)*.5)-5,30)
+        self.options_panel_video_chapters_timecode_label.setGeometry(((self.options_panel_video_panel.width()-90)*.5)+10,self.options_panel_video_panel.height()-55,((self.options_panel_video_panel.width()-90)*.5)-5,15)
+        self.options_panel_video_chapters_timecode.setGeometry(((self.options_panel_video_panel.width()-90)*.5)+10,self.options_panel_video_panel.height()-40,((self.options_panel_video_panel.width()-90)*.5)-5,30)
+        self.options_panel_video_chapters_edit_confirm.setGeometry(self.options_panel_video_panel.width()-75,self.options_panel_video_panel.height()-40,30,30)
+        self.options_panel_video_chapters_edit_cancel.setGeometry(self.options_panel_video_panel.width()-40,self.options_panel_video_panel.height()-40,30,30)
+        self.options_panel_video_chapters_add.setGeometry(10,self.options_panel_video_panel.height()-40,30,30)
+        self.options_panel_video_chapters_remove.setGeometry(45,self.options_panel_video_panel.height()-40,30,30)
+        self.options_panel_video_chapters_edit.setGeometry(80,self.options_panel_video_panel.height()-40,30,30)
+        self.options_panel_video_chapters_import.setGeometry(self.options_panel_video_chapters_list.width() - 20,self.options_panel_video_panel.height()-40,30,30)
+        self.nowediting_panel.setGeometry(0,-40,self.main_panel.width(),170)
+        self.nowediting_dvd_panel.setGeometry(0,-170,self.nowediting_panel.width(),self.nowediting_panel.height())
+        self.nowediting_dvd_panel_background.setGeometry(0,0,self.nowediting_dvd_panel.width(),self.nowediting_dvd_panel.height())
+        self.nowediting_dvd_panel_project_name_label.setGeometry(10,10,(self.nowediting_dvd_panel.width()*.5)-10,20)
+        self.nowediting_menus_panel.setGeometry(0,-170,self.nowediting_panel.width(),self.nowediting_panel.height())
+        self.nowediting_menus_panel_background.setGeometry(0,0,self.nowediting_menus_panel.width(),self.nowediting_menus_panel.height())
+        self.nowediting_menus_panel_list.setGeometry(10,10,self.nowediting_menus_panel.width()-60,self.nowediting_menus_panel.height()-70)
+        self.nowediting_menus_panel_add.setGeometry(self.nowediting_menus_panel.width()-40,40,30,30)
+        self.nowediting_menus_panel_remove.setGeometry(self.nowediting_menus_panel.width()-40,80,30,30)
+        self.nowediting_videos_panel.setGeometry(0,-170,self.nowediting_panel.width(),self.nowediting_panel.height())
+        self.nowediting_videos_panel_background.setGeometry(0,0,self.nowediting_videos_panel.width(),self.nowediting_videos_panel.height())
+        self.nowediting_videos_panel_list.setGeometry(10,10,self.nowediting_videos_panel.width()-60,self.nowediting_videos_panel.height()-70)
+        self.nowediting_videos_panel_add.setGeometry(self.nowediting_videos_panel.width()-40,40,30,30)
+        self.nowediting_videos_panel_remove.setGeometry(self.nowediting_videos_panel.width()-40,80,30,30)
+        self.top_panel_background.setGeometry(0,0,self.top_panel.width(),self.top_panel.height())
+        self.top_panel_project_name_label.setGeometry(20, 0, self.top_panel.width() , 80)
+        self.videos_player_timeline.setGeometry(0,25,self.videos_player_panel.width(),100)
+        self.menus_properties_panel_background.setGeometry(0,0,self.menus_properties_panel.width(),self.menus_properties_panel.height())
+        self.finalize_panel_background.setGeometry(0,0,self.finalize_panel.width(),self.finalize_panel.height())
+        self.finalize_panel_generate_button.setGeometry(self.finalize_panel.width() - 220,20,200,50)
+        self.finalize_panel_generate_button_iso_checkbox.setGeometry(self.finalize_panel_generate_button.width() - 60, (self.finalize_panel_generate_button.height()/2) - 20, 50, 20)
+        self.finalize_panel_generate_button_ddp_checkbox.setGeometry(self.finalize_panel_generate_button.width() - 60, self.finalize_panel_generate_button.height()/2, 50, 20)
 
 ###################################################################################################
 ########################################################################################### PROJETO
@@ -2189,8 +2201,8 @@ def nowediting_panel_button_changed(self, nowediting):
         if (self.nowediting == 'dvd' and not self.nowediting_panel_dvd_button_background.isVisible()) or (self.nowediting == 'menus' and not self.nowediting_panel_menus_button_background.isVisible()) or (self.nowediting == 'videos' and not self.nowediting_panel_videos_button_background.isVisible()):
             generate_effect(self, self.nowediting_panel_animation, 'geometry', 500, [self.nowediting_panel.x(),self.nowediting_panel.y(),self.nowediting_panel.width(),self.nowediting_panel.height()], [0,-40,self.main_panel.width(),170])
             generate_effect(self, self.content_panel_animation, 'geometry', 500, [self.content_panel.x(),self.content_panel.y(),self.content_panel.width(),self.content_panel.height()], [0,-40,self.content_panel.width(),self.content_panel.height()])
-            if not self.options_panel.x() == 820 and (self.nowediting == 'dvd' or (self.nowediting == 'menus' and self.selected_menu) or (self.nowediting == 'videos' and self.selected_video) ):
-                generate_effect(self, self.options_panel_animation, 'geometry', 500, [self.options_panel.x(),self.options_panel.y(),self.options_panel.width(),self.options_panel.height()], [820,self.options_panel.y(),self.options_panel.width(),self.options_panel.height()])
+            if not self.options_panel.x() == self.main_panel.width() - 380 and (self.nowediting == 'dvd' or (self.nowediting == 'menus' and self.selected_menu) or (self.nowediting == 'videos' and self.selected_video) ):
+                generate_effect(self, self.options_panel_animation, 'geometry', 500, [self.options_panel.x(),self.options_panel.y(),self.options_panel.width(),self.options_panel.height()], [self.main_panel.width()-380,self.options_panel.y(),self.options_panel.width(),self.options_panel.height()])
 
         if self.nowediting == 'dvd':
             self.options_panel_dvd_panel.setShown(True)
@@ -2204,8 +2216,8 @@ def nowediting_panel_button_changed(self, nowediting):
             if self.selected_menu:
                 if not self.menus_properties_panel.y() == self.main_panel.height() - 125:
                     generate_effect(self, self.menus_properties_panel_animation, 'geometry', 500, [self.menus_properties_panel.x(),self.menus_properties_panel.y(),self.menus_properties_panel.width(),self.menus_properties_panel.height()], [self.menus_properties_panel.x(),self.main_panel.height() - 125,self.menus_properties_panel.width(),self.menus_properties_panel.height()])
-                if not self.options_panel.x() == 820:
-                    generate_effect(self, self.options_panel_animation, 'geometry', 500, [self.options_panel.x(),self.options_panel.y(),self.options_panel.width(),self.options_panel.height()], [820,self.options_panel.y(),self.options_panel.width(),self.options_panel.height()])
+                if not self.options_panel.x() == self.main_panel.width() - 380:
+                    generate_effect(self, self.options_panel_animation, 'geometry', 500, [self.options_panel.x(),self.options_panel.y(),self.options_panel.width(),self.options_panel.height()], [self.main_panel.width()-380,self.options_panel.y(),self.options_panel.width(),self.options_panel.height()])
 
         elif self.nowediting == 'videos':
             self.options_panel_dvd_panel.setShown(False)
@@ -2216,8 +2228,8 @@ def nowediting_panel_button_changed(self, nowediting):
                 self.preview.setShown(False)
                 if not self.videos_player_panel.y() == self.main_panel.height() - 125:
                     generate_effect(self, self.videos_player_panel_animation, 'geometry', 500, [self.videos_player_panel.x(),self.videos_player_panel.y(),self.videos_player_panel.width(),self.videos_player_panel.height()], [self.videos_player_panel.x(),self.main_panel.height() - 125,self.videos_player_panel.width(),self.videos_player_panel.height()])
-                if not self.options_panel.x() == 820:
-                    generate_effect(self, self.options_panel_animation, 'geometry', 500, [self.options_panel.x(),self.options_panel.y(),self.options_panel.width(),self.options_panel.height()], [820,self.options_panel.y(),self.options_panel.width(),self.options_panel.height()])
+                if not self.options_panel.x() == self.main_panel.width() - 380:
+                    generate_effect(self, self.options_panel_animation, 'geometry', 500, [self.options_panel.x(),self.options_panel.y(),self.options_panel.width(),self.options_panel.height()], [self.main_panel.width()-380,self.options_panel.y(),self.options_panel.width(),self.options_panel.height()])
 
     if self.nowediting == 'dvd':
         self.nowediting_panel_dvd_button_background.setShown(False)
@@ -2789,7 +2801,7 @@ def update_changes(self):
 
         if self.nowediting == 'menus' and not self.nowediting_panel.y() == -40: #self.menus_properties_panel.y() == self.main_panel.height() and
             generate_effect(self, self.menus_properties_panel_animation, 'geometry', 500, [self.menus_properties_panel.x(),self.menus_properties_panel.y(),self.menus_properties_panel.width(),self.menus_properties_panel.height()], [self.menus_properties_panel.x(),self.main_panel.height()-125,self.menus_properties_panel.width(),self.menus_properties_panel.height()])
-            generate_effect(self, self.options_panel_animation, 'geometry', 500, [self.options_panel.x(),self.options_panel.y(),self.options_panel.width(),self.options_panel.height()], [820,self.options_panel.y(),self.options_panel.width(),self.options_panel.height()])
+            generate_effect(self, self.options_panel_animation, 'geometry', 500, [self.options_panel.x(),self.options_panel.y(),self.options_panel.width(),self.options_panel.height()], [self.main_panel.width()-380,self.options_panel.y(),self.options_panel.width(),self.options_panel.height()])
         elif self.nowediting == 'menus' and self.nowediting_panel.y() == 80:
             generate_effect(self, self.menus_properties_panel_animation, 'geometry', 500, [self.menus_properties_panel.x(),self.menus_properties_panel.y(),self.menus_properties_panel.width(),self.menus_properties_panel.height()], [self.menus_properties_panel.x(),self.main_panel.height(),self.menus_properties_panel.width(),self.menus_properties_panel.height()])
 
@@ -3042,7 +3054,7 @@ def menu_selected(self):
     update_changes(self)
 
 def add_menu(self):
-    image_path_list = QtGui.QFileDialog.getOpenFileName(self, 'Select the image or video for menu', path_home, 'PNG, JPEG images or MPEG videos (*.jpg *.png *.m4v *.m2v *.mpg *.mp4 *.mov)')[0]#.toUtf8()
+    image_path_list = QtGui.QFileDialog.getOpenFileNames(self, 'Select the image or video for menu', path_home, 'PNG, JPEG images or MPEG videos (*.jpg *.png *.m4v *.m2v *.mpg *.mp4 *.mov)')[0]#.toUtf8()
 
     for image_path_file in image_path_list:
         image_path = os.path.abspath(image_path_file)

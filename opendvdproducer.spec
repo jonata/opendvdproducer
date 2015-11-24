@@ -1,5 +1,3 @@
-# -*- mode: python -*-
-
 import os
 
 a = Analysis(['opendvdproducer.py'],
