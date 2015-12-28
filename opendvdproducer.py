@@ -217,14 +217,7 @@ class generate_dvd_thread(QtCore.QThread):
                 control_dat += str(bytearray([int('00000000', 2)]))
                 control_dat += str(bytearray([int('00000000', 2)]))
                 control_dat += str(bytearray([int('00000001', 2)]))
-
-
                 control_dat += str(bytearray([int('00000010', 2)]))
-
-
-
-
-
 
                 if len(layers) == 2:
                     if tp_mode == "OTP":
@@ -238,11 +231,6 @@ class generate_dvd_thread(QtCore.QThread):
                         control_dat += str(bytearray([int('00000001', 2)]))
 
                 control_dat += str(bytearray([int('00010000', 2)]))
-
-
-
-
-
                 control_dat += str(bytearray([int('00000000', 2)]))
                 control_dat += str(bytearray([int('00000011', 2)]))
                 control_dat += str(bytearray([int('00000000', 2)]))
@@ -259,10 +247,6 @@ class generate_dvd_thread(QtCore.QThread):
                     control_dat += str(bytearray([int('00000000', 2)]))
 
                 control_dat += str(bytearray([int('00000000', 2)]))
-
-
-
-
 
                 for i in range(16):
                     control_dat += str(bytearray([int('00000000', 2)]))
@@ -1099,7 +1083,6 @@ class main_window(QtGui.QWidget):
         self.options_panel_background.setPixmap(os.path.join(path_graphics, 'options_panel_background.png'))
         self.options_panel_background.setScaledContents(True)
 
-
         self.options_panel_dvd_panel = QtGui.QWidget(parent=self.options_panel)
 
         class options_panel_dvd_panel_dvd_image(QtGui.QWidget):
@@ -1268,7 +1251,6 @@ class main_window(QtGui.QWidget):
 
         self.options_panel_dvd_panel_video_twopass_background = QtGui.QLabel(parent=self.options_panel_dvd_panel_video_twopass)
         self.options_panel_dvd_panel_video_twopass_background.setGeometry(0,0,self.options_panel_dvd_panel_video_twopass.width(),self.options_panel_dvd_panel_video_twopass.height())
-
 
         self.options_panel_dvd_panel_gop_label = QtGui.QLabel(parent=self.options_panel_dvd_panel)
         self.options_panel_dvd_panel_gop_label.setGeometry(10, 600, 170, 20)
@@ -1669,7 +1651,6 @@ class main_window(QtGui.QWidget):
                             rectangle = QtCore.QRectF((mark * 1.0) + 5.0, 30.0, text_size + 10.0,20.0)
                             painter.drawText(rectangle, QtCore.Qt.AlignLeft, chapter)
                     pixmap = QtGui.QPixmap(os.path.join(path_graphics, 'videos_player_timeline_seek.png'))
-                    #print self.preview_video_obj.currentTime()
                     painter.drawPixmap((self.preview_video_obj.currentTime() / ((self.dict_of_videos[self.selected_video][5]*1000)/self.main_panel.width()-380))-10,0,pixmap)
                 painter.end()
 
@@ -1686,24 +1667,12 @@ class main_window(QtGui.QWidget):
                         self.selected_video_chapter = None
                 if self.selected_video_chapter == None:
                     self.preview_video_obj.seek(event.pos().x() * ((self.dict_of_videos[self.selected_video][5]*1000)/self.main_panel.width()-380) )
-                #if not self.preview_video_obj.state() in [Phonon.PlayingState , Phonon.BufferingState, Phonon.PausedState]:
-                #   video_pause(self)
                 update_timeline(self)
 
             def mouseReleaseEvent(widget, event):
-
-                update_timeline(self)#None
-                #update_timeline(self)
-
-                #if self.selected_video_chapter == None:
-
-                #    self.preview_video_obj.seek(event.pos().x() * (self.preview_video_obj.totalTime()/820) )
-                #
-
+                update_timeline(self)
             def mouseMoveEvent(widget, event):
                 self.preview_video_obj.seek(event.pos().x() * ((self.dict_of_videos[self.selected_video][5]*1000)/self.main_panel.width()-380) )
-                #if self.preview_video_obj.state() in [Phonon.PlayingState , Phonon.BufferingState, Phonon.PausedState]:
-                #self.preview_video_obj.seek(event.pos().x() * (self.preview_video_obj.totalTime()/820) )
                 update_timeline(self)
 
         self.videos_player_timeline = videos_player_timeline(parent=self.videos_player_panel)
