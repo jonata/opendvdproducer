@@ -39,8 +39,6 @@ for filename in os.listdir('graphics'):
 for filename in os.listdir('resources'):
     filepath = 'resources' + os.sep + filename
     if os.path.isfile(filepath):
-        #if filename in ['convert', 'spumux', 'dvdauthor','mkisofs','ffmpeg','ffprobe','iso2ddp_mac']:
-        #    DATA_FILES.append(('', [filepath]))
         if filepath.endswith('flac') or (not sys.platform.startswith('linux') and filepath.endswith('ttf')) or (sys.platform == 'darwin' and (not filepath.endswith('exe') and not filepath.endswith('dll'))):
             DATA_FILES.append((share_or_resources + '', [filepath]))
 
