@@ -2146,7 +2146,6 @@ def nowediting_dvd_panel_has_menus_update(self):
         self.nowediting_dvd_panel_has_menus_background.setPixmap(os.path.join(path_graphics, 'nowediting_dvd_panel_has_menus_no.png'))
     self.nowediting_menus_panel.setEnabled(self.has_menus)
 
-
 def nowediting_panel_button_changed(self, nowediting):
     self.nowediting = nowediting
 
