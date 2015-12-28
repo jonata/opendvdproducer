@@ -3011,9 +3011,7 @@ def menu_selected(self):
     else:
         self.nowediting_menus_panel_remove.setEnabled(False)
         self.nowediting_menus_panel_duplicate.setEnabled(False)
-    #populate_menu_buttons_list(self)
-
-
+    
     self.selected_menu_button = None
     self.options_panel_menu_buttons_position_box.setEnabled(False)
     self.options_panel_menu_buttons.setCurrentItem(None)
