@@ -1806,8 +1806,6 @@ class main_window(QtGui.QWidget):
         self.videos_player_controls_panel_current_time.setGeometry(344,10,146,30)
         self.videos_player_controls_panel_current_time.setAlignment(QtCore.Qt.AlignCenter | QtCore.Qt.AlignVCenter)
         self.videos_player_controls_panel_current_time.setStyleSheet('font-family: "Ubuntu Mono"; font-size:22px; color:#9AC3CF')
-        #font-size:22px;font-family=' + '"Ubuntu Mono"' + ';color:#9AC3CF"
-        #self.videos_player_controls_panel_current_time.setText('<font style="font-size:32px;font-family=Segment7;color:#07334C">00:00:00:00</font>')
 
         self.menus_properties_panel = QtGui.QWidget(parent=self.main_panel)
         self.menus_properties_panel_animation = QtCore.QPropertyAnimation(self.menus_properties_panel, 'geometry')
