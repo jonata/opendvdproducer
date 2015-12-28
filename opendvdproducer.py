@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import os, sys, subprocess, time, random, codecs, tempfile, shutil, shutil
+import os, sys, subprocess, time, random, codecs, tempfile, shutil, shutil,copy
 
 from PySide import QtGui, QtCore
 from PySide.phonon import Phonon
@@ -1559,6 +1559,11 @@ class main_window(QtGui.QWidget):
         self.nowediting_menus_panel_list.setViewMode(QtGui.QListView.IconMode)
         self.nowediting_menus_panel_list.clicked.connect(lambda:menu_selected(self))
 
+        self.nowediting_menus_panel_duplicate = QtGui.QPushButton(parent=self.nowediting_menus_panel)
+        self.nowediting_menus_panel_duplicate.setIcon(QtGui.QPixmap(os.path.join(path_graphics, 'duplicate.png')))
+        self.nowediting_menus_panel_duplicate.clicked.connect(lambda:duplicate_menu(self))
+        self.nowediting_menus_panel_duplicate.setEnabled(False)
+
         self.nowediting_menus_panel_add = QtGui.QPushButton(parent=self.nowediting_menus_panel)
         self.nowediting_menus_panel_add.setIcon(QtGui.QPixmap(os.path.join(path_graphics, 'add.png')))
         self.nowediting_menus_panel_add.clicked.connect(lambda:add_menu(self))
@@ -2084,6 +2089,7 @@ class main_window(QtGui.QWidget):
         self.options_panel_video_chapters_remove.setGeometry(45,self.options_panel_video_panel.height()-40,30,30)
         self.options_panel_video_chapters_edit.setGeometry(80,self.options_panel_video_panel.height()-40,30,30)
         self.options_panel_video_chapters_import.setGeometry(self.options_panel_video_chapters_list.width() - 20,self.options_panel_video_panel.height()-40,30,30)
+        print self.nowediting_panel.y()
         self.nowediting_panel.setGeometry(0,-40,self.main_panel.width(),170)
         self.nowediting_dvd_panel.setGeometry(0,-170,self.nowediting_panel.width(),self.nowediting_panel.height())
         self.nowediting_dvd_panel_background.setGeometry(0,0,self.nowediting_dvd_panel.width(),self.nowediting_dvd_panel.height())
@@ -2091,6 +2097,7 @@ class main_window(QtGui.QWidget):
         self.nowediting_menus_panel.setGeometry(0,-170,self.nowediting_panel.width(),self.nowediting_panel.height())
         self.nowediting_menus_panel_background.setGeometry(0,0,self.nowediting_menus_panel.width(),self.nowediting_menus_panel.height())
         self.nowediting_menus_panel_list.setGeometry(10,10,self.nowediting_menus_panel.width()-60,self.nowediting_menus_panel.height()-70)
+        self.nowediting_menus_panel_duplicate.setGeometry(self.nowediting_menus_panel.width()-40,10,30,30)
         self.nowediting_menus_panel_add.setGeometry(self.nowediting_menus_panel.width()-40,40,30,30)
         self.nowediting_menus_panel_remove.setGeometry(self.nowediting_menus_panel.width()-40,80,30,30)
         self.nowediting_videos_panel.setGeometry(0,-170,self.nowediting_panel.width(),self.nowediting_panel.height())
@@ -3035,11 +3042,12 @@ def generate_preview_image(self, image_item, image_dict):
 def menu_selected(self):
     if self.nowediting_menus_panel_list.currentItem():
         self.nowediting_menus_panel_remove.setEnabled(True)
+        self.nowediting_menus_panel_duplicate.setEnabled(True)
         self.selected_menu = self.nowediting_menus_panel_list.currentItem().text().split('\n')[0]
     else:
         self.nowediting_menus_panel_remove.setEnabled(False)
-
-    populate_menu_buttons_list(self)
+        self.nowediting_menus_panel_duplicate.setEnabled(False)
+    #populate_menu_buttons_list(self)
 
 
     self.selected_menu_button = None
@@ -3052,6 +3060,25 @@ def menu_selected(self):
     populate_menu_buttons_list(self)
     clean_buttons_selection(self)
     update_changes(self)
+
+def duplicate_menu(self):
+    new_menu_name = check_name(self, self.list_of_menus, self.selected_menu)
+    new_menu = copy.deepcopy(self.dict_of_menus[self.selected_menu])
+
+    self.list_of_menus.append(new_menu_name)
+    self.dict_of_menus[new_menu_name] = new_menu
+
+    generate_preview_image(self, new_menu_name, self.dict_of_menus)
+
+    self.selected_menu_button = None
+    clean_menus_list_selection(self)
+
+    self.selected_menu = self.list_of_menus[-1]
+    update_changes(self)
+    populate_menus_list(self)
+
+    nowediting_panel_button_changed(self, self.nowediting)
+
 
 def add_menu(self):
     image_path_list = QtGui.QFileDialog.getOpenFileNames(self, 'Select the image or video for menu', path_home, 'PNG, JPEG images or MPEG videos (*.jpg *.png *.m4v *.m2v *.mpg *.mp4 *.mov)')[0]#.toUtf8()
@@ -3184,6 +3211,8 @@ def clean_menus_list_selection(self):
     self.selected_menu = None
     self.no_preview_label.setShown(True)
     self.nowediting_menus_panel_list.setCurrentItem(None)
+    self.nowediting_menus_panel_duplicate.setEnabled()
+    self.nowediting_menus_panel_remove.setEnabled()
     clean_buttons_selection(self)
 
 
@@ -3239,6 +3268,8 @@ def menu_buttons_set_geometry(self):
 def populate_menu_buttons_list(self):
     self.options_panel_menu_buttons.clear()
     self.options_panel_menu_buttons_edit.setText('')
+    print self.selected_menu
+    print self.dict_of_menus[self.selected_menu][1]
     for button in self.dict_of_menus[self.selected_menu][1]:
         self.options_panel_menu_buttons.addItem(button)
 
