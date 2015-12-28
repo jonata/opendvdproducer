@@ -2867,9 +2867,7 @@ def main_tabs_changed(self):
         self.preview_video_seek_next_frame_button.setShown(True)
         self.preview_video_add_this_mark_button.setShown(True)
         self.menus_properties_panel_overlay_preview_button.setShown(False)
-        #if not self.selected_video:
         clean_videos_list_selection(self)
-        #else:
         if self.selected_video:
             if self.preview_video_obj.state() == Phonon.PlayingState:
                 self.preview_video_obj.stop()
