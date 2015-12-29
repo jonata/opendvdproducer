@@ -15,7 +15,7 @@ if sys.platform == 'win32':
 else:
     path_opendvdproducer = os.path.dirname(sys.argv[0])
 
-#os.path.realpath(__file__)#os.path.abspath(os.path.dirname(sys.argv[0]))
+#os.path.realpath(__file__)#os.path.abspath(os.path.dirname(sys.argv[0])) // just for windows, but with problem.
 
 path_graphics = os.path.join(path_opendvdproducer, 'graphics')
 path_home = os.path.expanduser("~")
@@ -3011,7 +3011,7 @@ def menu_selected(self):
     else:
         self.nowediting_menus_panel_remove.setEnabled(False)
         self.nowediting_menus_panel_duplicate.setEnabled(False)
-    
+
     self.selected_menu_button = None
     self.options_panel_menu_buttons_position_box.setEnabled(False)
     self.options_panel_menu_buttons.setCurrentItem(None)
