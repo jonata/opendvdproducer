@@ -2019,7 +2019,6 @@ class main_window(QtGui.QWidget):
 
         class finalize_panel_generate_button(QtGui.QWidget):
             def enterEvent(widget, event):
-                print 'enter'
                 self.finalize_panel_generate_button_background.setStyleSheet("QLabel { padding-left:50px;  background-image: url(./graphics/finalize_panel_background_button_over.png); background-position: center left; }")
             def leaveEvent(widget, event):
                 self.finalize_panel_generate_button_background.setStyleSheet("QLabel { padding-left:50px;  background-image: url(./graphics/finalize_panel_background_button_normal.png); background-position: center left; }")
@@ -2063,40 +2062,43 @@ class main_window(QtGui.QWidget):
         class finalize_panel_generate_options_toggle(QtGui.QLabel):
             def enterEvent(widget, event):
                 if self.finalize_panel.x() == self.main_panel.width() - 260:
-                    self.finalize_panel_generate_options_toggle_background.setPixmap(os.path.join(path_graphics, 'finalize_panel_background_button_toggle_left_over.png'))
+                    self.finalize_panel_generate_options_toggle.setStyleSheet("QLabel { background-image: url(./graphics/finalize_panel_background_button_toggle_left_over.png); background-position: center left; }")
                 else:
-                    self.finalize_panel_generate_options_toggle_background.setPixmap(os.path.join(path_graphics, 'finalize_panel_background_button_toggle_right_over.png'))
+                    self.finalize_panel_generate_options_toggle.setStyleSheet("QLabel { background-image: url(./graphics/finalize_panel_background_button_toggle_right_over.png); background-position: center left; }")
             def leaveEvent(widget, event):
                 if self.finalize_panel.x() == self.main_panel.width() - 260:
-                    self.finalize_panel_generate_options_toggle_background.setPixmap(os.path.join(path_graphics, 'finalize_panel_background_button_toggle_left.png'))
+                    self.finalize_panel_generate_options_toggle.setStyleSheet("QLabel { background-image: url(./graphics/finalize_panel_background_button_toggle_left.png); background-position: center left; }")
                 else:
-                    self.finalize_panel_generate_options_toggle_background.setPixmap(os.path.join(path_graphics, 'finalize_panel_background_button_toggle_right.png'))
+                    self.finalize_panel_generate_options_toggle.setStyleSheet("QLabel { background-image: url(./graphics/finalize_panel_background_button_toggle_right.png); background-position: center left; }")
             def mousePressEvent(widget, event):
                 if self.finalize_panel.x() == self.main_panel.width() - 260:
                     generate_effect(self, self.finalize_panel_animation, 'geometry', 500, [self.finalize_panel.x(),self.finalize_panel.y(),self.finalize_panel.width(),self.finalize_panel.height()], [self.main_panel.width() - self.finalize_panel.width(),self.finalize_panel.y(),self.finalize_panel.width(),self.finalize_panel.height()])
                 else:
                     generate_effect(self, self.finalize_panel_animation, 'geometry', 500, [self.finalize_panel.x(),self.finalize_panel.y(),self.finalize_panel.width(),self.finalize_panel.height()], [self.main_panel.width() - 260,self.finalize_panel.y(),self.finalize_panel.width(),self.finalize_panel.height()])
-                    self.finalize_panel_generate_options_toggle_background.setPixmap(os.path.join(path_graphics, 'finalize_panel_background_button_toggle_left.png'))
+                    self.finalize_panel_generate_options_toggle.setStyleSheet("QLabel { background-image: url(./graphics/finalize_panel_background_button_toggle_right.png); background-position: center left; }")
 
         self.finalize_panel_generate_options_toggle = finalize_panel_generate_options_toggle(parent=self.finalize_panel_generate_options)
         self.finalize_panel_generate_options_toggle.setGeometry(0,0,20,self.finalize_panel_generate_options.height())
+        self.finalize_panel_generate_options_toggle.setStyleSheet("QLabel { background-image: url(./graphics/finalize_panel_background_button_toggle_right.png); background-position: center left; }")
 
-        self.finalize_panel_generate_options_toggle_background = QtGui.QLabel(parent=self.finalize_panel_generate_options_toggle)
-        self.finalize_panel_generate_options_toggle_background.setGeometry(0,0,self.finalize_panel_generate_options_toggle.width(),self.finalize_panel_generate_options_toggle.height())
-        self.finalize_panel_generate_options_toggle_background.setPixmap(os.path.join(path_graphics, 'finalize_panel_background_button_toggle_left.png'))
+        #self.finalize_panel_generate_options_toggle_background = QtGui.QLabel(parent=self.finalize_panel_generate_options_toggle)
+        #self.finalize_panel_generate_options_toggle_background.setGeometry(0,0,self.finalize_panel_generate_options_toggle.width(),self.finalize_panel_generate_options_toggle.height())
+        #self.finalize_panel_generate_options_toggle_background.setPixmap(os.path.join(path_graphics, 'finalize_panel_background_button_toggle_left.png'))
 
         self.finalize_panel_generate_button_md5_checkbox = QtGui.QCheckBox('MD5', parent=self.finalize_panel_generate_options)
         self.finalize_panel_generate_button_md5_checkbox.clicked.connect(lambda:set_generate_dvd_kind(self))
-        self.finalize_panel_generate_button_md5_checkbox.setGeometry(20, 20, 50, 20)
+        self.finalize_panel_generate_button_md5_checkbox.setGeometry(40, 20, 50, 20)
 
         self.finalize_panel_generate_button_ddp_checkbox = QtGui.QCheckBox('DDP', parent=self.finalize_panel_generate_options)
         self.finalize_panel_generate_button_ddp_checkbox.clicked.connect(lambda:set_generate_dvd_kind(self))
-        self.finalize_panel_generate_button_ddp_checkbox.setGeometry(90, 20, 50, 20)
+        self.finalize_panel_generate_button_ddp_checkbox.setGeometry(110, 20, 50, 20)
 
         self.generate_dvd_thread_thread = generate_dvd_thread()
         self.generate_dvd_thread_thread.signal.sig.connect(self.generate_dvd_thread_thread_completed)
 
+
         self.setGeometry(0, 0, QtGui.QDesktopWidget().screenGeometry().width(), QtGui.QDesktopWidget().screenGeometry().height())
+
         self.showMaximized()
         clean_changes(self)
 
