@@ -93,6 +93,7 @@ class generate_dvd_thread(QtCore.QThread):
         self.selected_menu_twopass = True
         self.selected_video_twopass = True
         self.audio_datarate = 384
+        self.generate_md5 = False
         self.generate_ddp = False
         self.generate_iso = True
         self.has_menus = True
@@ -370,7 +371,6 @@ class generate_dvd_thread(QtCore.QThread):
                         sound_file = os.path.join(path_opendvdproducer, 'silence.flac')
 
                     sound_length_xml = unicode(subprocess.Popen([ffprobe_bin,'-loglevel', 'error',  '-show_format', '-print_format', 'xml', sound_file], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE).stdout.read(), 'utf-8')
-                    print sound_length_xml
                     sound_length = float(sound_length_xml.split(' duration="')[1].split('"')[0])
 
                     final_command = [ffmpeg_bin]
@@ -587,9 +587,6 @@ class generate_dvd_thread(QtCore.QThread):
             chapters_keyframes = ''
             for chapter in self.dict_of_videos[video][1]:
                 chapters_keyframes += self.dict_of_videos[video][2][chapter] + ','
-
-            print chapters_keyframes
-
             if self.dict_of_videos[video][4]:
                 final_command = [ffmpeg_bin]
                 final_command += '-y',
@@ -730,11 +727,12 @@ class generate_dvd_thread(QtCore.QThread):
 
         subprocess.call([mkisofs_bin, '-v', '-dvd-video', '-udf', '-V', self.project_name[:32], '-o',  os.path.join(path_tmp, 'movie.iso'),  os.path.join(path_tmp, 'dvd')])
         if os.path.isfile(os.path.join(path_tmp, 'movie.iso')):
-            self.signal.sig.emit('PROCESSING MD5,' + str(video_count + 4))
+            if self.generate_md5:
+                self.signal.sig.emit('PROCESSING MD5,' + str(video_count + 4))
 
-            md5 = subprocess.Popen([md5_bin, os.path.join(path_tmp, 'movie.iso')], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE).stdout.read()
+                md5 = subprocess.Popen([md5_bin, os.path.join(path_tmp, 'movie.iso')], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE).stdout.read()
 
-            open(self.actual_project_file.replace(self.actual_project_file.split('/')[-1].split('\\')[-1], '') + self.project_name + '.md5', 'w').write(md5)
+                open(self.actual_project_file.replace(self.actual_project_file.split('/')[-1].split('\\')[-1], '') + self.project_name + '.md5', 'w').write(md5)
 
             if self.generate_ddp:
                 self.signal.sig.emit('PROCESSING DDP,' + str(video_count + 5))
@@ -762,6 +760,7 @@ class main_window(QtGui.QWidget):
         self.aspect_ratios = ['16:9', '4:3']
         self.audio_formats = ['MP2 48kHz', 'AC3 48kHz']
         self.resolutions = []
+        self.nowediting_is_open = True
 
         self.main_panel = QtGui.QWidget(parent=self)
 
@@ -1080,8 +1079,11 @@ class main_window(QtGui.QWidget):
         self.options_panel_animation.setEasingCurve(QtCore.QEasingCurve.OutCirc)
 
         self.options_panel_background = QtGui.QLabel(parent=self.options_panel)
-        self.options_panel_background.setPixmap(os.path.join(path_graphics, 'options_panel_background.png'))
-        self.options_panel_background.setScaledContents(True)
+        #self.options_panel_background.setFrameShape(QtGui.QFrame.StyledPanel)
+        self.options_panel_background.setStyleSheet("QLabel { background-image: url(./graphics/options_panel_background.png); background-position: center right; background-repeat: repeat-y; }")
+
+        #self.options_panel_background.setPixmap(os.path.join(path_graphics, 'options_panel_background.png'))
+        #self.options_panel_background.setScaledContents(True)
 
         self.options_panel_dvd_panel = QtGui.QWidget(parent=self.options_panel)
 
@@ -1440,7 +1442,8 @@ class main_window(QtGui.QWidget):
         self.nowediting_dvd_panel_animation.setEasingCurve(QtCore.QEasingCurve.OutCirc)
 
         self.nowediting_dvd_panel_background = QtGui.QLabel(parent=self.nowediting_dvd_panel)
-        self.nowediting_dvd_panel_background.setPixmap(os.path.join(path_graphics, 'nowediting_dvd_panel_background.png'))
+        #self.nowediting_dvd_panel_background.setPixmap(os.path.join(path_graphics, 'nowediting_dvd_panel_background.png'))
+        self.nowediting_dvd_panel_background.setStyleSheet("QLabel {background-image: url(./graphics/nowediting_panel_background.png);background-position: top left; background-repeat: repeat-x;}")
         self.nowediting_dvd_panel_background.setAlignment(QtCore.Qt.AlignVCenter | QtCore.Qt.AlignLeft)
 
         self.nowediting_dvd_panel_project_name_label = QtGui.QLabel(parent=self.nowediting_dvd_panel)
@@ -1534,7 +1537,8 @@ class main_window(QtGui.QWidget):
         self.nowediting_menus_panel_animation.setEasingCurve(QtCore.QEasingCurve.OutCirc)
 
         self.nowediting_menus_panel_background = QtGui.QLabel(parent=self.nowediting_menus_panel)
-        self.nowediting_menus_panel_background.setPixmap(os.path.join(path_graphics, 'nowediting_menus_panel_background.png'))
+        #self.nowediting_menus_panel_background.setPixmap(os.path.join(path_graphics, 'nowediting_menus_panel_background.png'))
+        self.nowediting_menus_panel_background.setStyleSheet("QLabel {background-image: url(./graphics/nowediting_panel_background.png);background-position: top left; background-repeat: repeat-x;}")
         self.nowediting_menus_panel_background.setAlignment(QtCore.Qt.AlignVCenter | QtCore.Qt.AlignLeft)
 
         self.nowediting_menus_panel_list = QtGui.QListWidget(parent=self.nowediting_menus_panel)
@@ -1560,7 +1564,8 @@ class main_window(QtGui.QWidget):
         self.nowediting_videos_panel_animation.setEasingCurve(QtCore.QEasingCurve.OutCirc)
 
         self.nowediting_videos_panel_background = QtGui.QLabel(parent=self.nowediting_videos_panel)
-        self.nowediting_videos_panel_background.setPixmap(os.path.join(path_graphics, 'nowediting_videos_panel_background.png'))
+        #self.nowediting_videos_panel_background.setPixmap(os.path.join(path_graphics, 'nowediting_videos_panel_background.png'))
+        self.nowediting_videos_panel_background.setStyleSheet("QLabel {background-image: url(./graphics/nowediting_panel_background.png);background-position: top left; background-repeat: repeat-x;}")
         self.nowediting_videos_panel_background.setAlignment(QtCore.Qt.AlignVCenter | QtCore.Qt.AlignLeft)
 
         self.nowediting_videos_panel_list = QtGui.QListWidget(parent=self.nowediting_videos_panel)
@@ -1579,45 +1584,79 @@ class main_window(QtGui.QWidget):
         self.top_panel = QtGui.QWidget(parent=self.main_panel)
 
         self.top_panel_background = QtGui.QLabel(parent=self.top_panel)
-        self.top_panel_background.setPixmap(os.path.join(path_graphics, 'top_panel_background.png'))
-        self.top_panel_background.setScaledContents(True)
+        #self.top_panel_background.setPixmap(os.path.join(path_graphics, 'top_panel_background.png'))
+        #.setStyleSheet('font-family: "Ubuntu Mono"; font-size:22px; color:#9AC3CF')
+        #self.top_panel_background.setFrameStyle(QtGui.QFrame.StyledPanel)
+        self.top_panel_background.setStyleSheet("QLabel {background-image: url(./graphics/top_panel_background.png);background-position: top left; background-repeat: repeat-x;}")
+        #self.top_panel_background.setStyleSheet('background-image:url("' + os.path.join(path_graphics, 'top_panel_background.png') + '");background-position: top left; background-repeat: repeat-x;"')
+        #self.top_panel_background.setScaledContents(True)
 
         self.top_panel_project_name_label = QtGui.QLabel(parent=self.main_panel)
         self.top_panel_project_name_label.setAlignment(QtCore.Qt.AlignVCenter)
         self.top_panel_project_name_label.setForegroundRole(QtGui.QPalette.Light)
 
         class nowediting_panel_dvd_button(QtGui.QWidget):
+            def enterEvent(widget, event):
+                self.nowediting_panel_dvd_button_icon.setPixmap(os.path.join(path_graphics, 'nowediting_dvd_button_icon_over.png'))
+            def leaveEvent(widget, event):
+                self.nowediting_panel_dvd_button_icon.setPixmap(os.path.join(path_graphics, 'nowediting_dvd_button_icon.png'))
             def mousePressEvent(widget, event):
                 nowediting_panel_button_changed(self, 'dvd')
 
         self.nowediting_panel_dvd_button = nowediting_panel_dvd_button(parent=self.nowediting_panel)
-        self.nowediting_panel_dvd_button.setGeometry(0,120,116,50)
+        self.nowediting_panel_dvd_button.setGeometry(-30,110,170,60)
 
         self.nowediting_panel_dvd_button_background = QtGui.QLabel(parent=self.nowediting_panel_dvd_button)
         self.nowediting_panel_dvd_button_background.setGeometry(0,0,self.nowediting_panel_dvd_button.width(),self.nowediting_panel_dvd_button.height())
-        self.nowediting_panel_dvd_button_background.setPixmap(os.path.join(path_graphics, 'nowediting_dvd_button_background.png'))
+        self.nowediting_panel_dvd_button_background.setStyleSheet("QLabel {background-image: url(./graphics/nowediting_panel_background_tab.png);background-position: top left; background-repeat: repeat-x;}")
+        #self.nowediting_panel_dvd_button_background.setPixmap(os.path.join(path_graphics, 'nowediting_dvd_button_icon.png'))
+
+        self.nowediting_panel_dvd_button_icon = QtGui.QLabel(parent=self.nowediting_panel_dvd_button)
+        self.nowediting_panel_dvd_button_icon.setGeometry(0,0,self.nowediting_panel_dvd_button.width(),self.nowediting_panel_dvd_button.height())
+        self.nowediting_panel_dvd_button_icon.setPixmap(os.path.join(path_graphics, 'nowediting_dvd_button_icon.png'))
+
 
         class nowediting_panel_menus_button(QtGui.QWidget):
+            def enterEvent(widget, event):
+                self.nowediting_panel_menus_button_icon.setPixmap(os.path.join(path_graphics, 'nowediting_menus_button_icon_over.png'))
+            def leaveEvent(widget, event):
+                self.nowediting_panel_menus_button_icon.setPixmap(os.path.join(path_graphics, 'nowediting_menus_button_icon.png'))
             def mousePressEvent(widget, event):
                 nowediting_panel_button_changed(self, 'menus')
 
         self.nowediting_panel_menus_button = nowediting_panel_menus_button(parent=self.nowediting_panel)
-        self.nowediting_panel_menus_button.setGeometry(116,120,140,50)
+        self.nowediting_panel_menus_button.setGeometry(110,110,170,60)
 
         self.nowediting_panel_menus_button_background = QtGui.QLabel(parent=self.nowediting_panel_menus_button)
         self.nowediting_panel_menus_button_background.setGeometry(0,0,self.nowediting_panel_menus_button.width(),self.nowediting_panel_menus_button.height())
-        self.nowediting_panel_menus_button_background.setPixmap(os.path.join(path_graphics, 'nowediting_menus_button_background.png'))
+        self.nowediting_panel_menus_button_background.setStyleSheet("QLabel {background-image: url(./graphics/nowediting_panel_background_tab.png);background-position: top left; background-repeat: repeat-x;}")
+        #self.nowediting_panel_menus_button_background.setPixmap(os.path.join(path_graphics, 'nowediting_menus_button_icon.png'))
+
+        self.nowediting_panel_menus_button_icon = QtGui.QLabel(parent=self.nowediting_panel_menus_button)
+        self.nowediting_panel_menus_button_icon.setGeometry(0,0,self.nowediting_panel_menus_button.width(),self.nowediting_panel_menus_button.height())
+        #self.nowediting_panel_menus_button_icon.setStyleSheet("QLabel {background-image: url(./graphics/nowediting_panel_icon_tab.png);background-position: top left; background-repeat: repeat-x;}")
+        self.nowediting_panel_menus_button_icon.setPixmap(os.path.join(path_graphics, 'nowediting_menus_button_icon.png'))
 
         class nowediting_panel_videos_button(QtGui.QWidget):
+            def enterEvent(widget, event):
+                self.nowediting_panel_videos_button_icon.setPixmap(os.path.join(path_graphics, 'nowediting_videos_button_icon_over.png'))
+            def leaveEvent(widget, event):
+                self.nowediting_panel_videos_button_icon.setPixmap(os.path.join(path_graphics, 'nowediting_videos_button_icon.png'))
             def mousePressEvent(widget, event):
                 nowediting_panel_button_changed(self, 'videos')
 
         self.nowediting_panel_videos_button = nowediting_panel_videos_button(parent=self.nowediting_panel)
-        self.nowediting_panel_videos_button.setGeometry(256,120,140,50)
+        self.nowediting_panel_videos_button.setGeometry(250,110,170,60)
 
         self.nowediting_panel_videos_button_background = QtGui.QLabel(parent=self.nowediting_panel_videos_button)
         self.nowediting_panel_videos_button_background.setGeometry(0,0,self.nowediting_panel_videos_button.width(),self.nowediting_panel_videos_button.height())
-        self.nowediting_panel_videos_button_background.setPixmap(os.path.join(path_graphics, 'nowediting_videos_button_background.png'))
+        self.nowediting_panel_videos_button_background.setStyleSheet("QLabel {background-image: url(./graphics/nowediting_panel_background_tab.png);background-position: top left; background-repeat: repeat-x;}")
+        #self.nowediting_panel_videos_button_background.setPixmap(os.path.join(path_graphics, 'nowediting_videos_button_icon.png'))
+
+        self.nowediting_panel_videos_button_icon = QtGui.QLabel(parent=self.nowediting_panel_videos_button)
+        self.nowediting_panel_videos_button_icon.setGeometry(0,0,self.nowediting_panel_videos_button.width(),self.nowediting_panel_videos_button.height())
+        self.nowediting_panel_videos_button_icon.setPixmap(os.path.join(path_graphics, 'nowediting_videos_button_icon.png'))
+
 
         self.videos_player_panel = QtGui.QWidget(parent=self.main_panel)
         self.videos_player_panel_animation = QtCore.QPropertyAnimation(self.videos_player_panel, 'geometry')
@@ -1968,17 +2007,91 @@ class main_window(QtGui.QWidget):
         self.finalize_panel_animation = QtCore.QPropertyAnimation(self.finalize_panel, 'geometry')
         self.finalize_panel_animation.setEasingCurve(QtCore.QEasingCurve.OutCirc)
 
-        self.finalize_panel_background = QtGui.QLabel(parent=self.finalize_panel)
-        self.finalize_panel_background.setPixmap(os.path.join(path_graphics, 'finalize_panel_background.png'))
+        self.finalize_panel_background_left = QtGui.QLabel(parent=self.finalize_panel)
+        #self.finalize_panel_background_left.setPixmap(os.path.join(path_graphics, 'finalize_panel_background_left.png'))
+        self.finalize_panel_background_left.setStyleSheet("QLabel { background-image: url(./graphics/finalize_panel_background_left.png); background-position: top left; }")
+        self.finalize_panel_background_left.setGeometry(0,0,50,100)
 
-        self.finalize_panel_generate_button = QtGui.QPushButton('Generate\nDVD', parent=self.finalize_panel)
-        self.finalize_panel_generate_button.clicked.connect(lambda:dvd_generate(self))
+        self.finalize_panel_background_right = QtGui.QLabel(parent=self.finalize_panel)
+        #self.finalize_panel_background_right.setPixmap(os.path.join(path_graphics, 'finalize_panel_background_right.png'))
+        self.finalize_panel_background_right.setStyleSheet("QLabel { background-image: url(./graphics/finalize_panel_background_right.png); background-position: top right; background-repeat: repeat-x; }")
+        self.finalize_panel_background_right.setGeometry(50,0,450,100)
 
-        self.finalize_panel_generate_button_iso_checkbox = QtGui.QCheckBox('ISO', parent=self.finalize_panel_generate_button)
-        self.finalize_panel_generate_button_iso_checkbox.clicked.connect(lambda:set_generate_dvd_kind(self))
+        class finalize_panel_generate_button(QtGui.QWidget):
+            def enterEvent(widget, event):
+                print 'enter'
+                self.finalize_panel_generate_button_background.setStyleSheet("QLabel { padding-left:50px;  background-image: url(./graphics/finalize_panel_background_button_over.png); background-position: center left; }")
+            def leaveEvent(widget, event):
+                self.finalize_panel_generate_button_background.setStyleSheet("QLabel { padding-left:50px;  background-image: url(./graphics/finalize_panel_background_button_normal.png); background-position: center left; }")
+            def mousePressEvent(widget, event):
+                dvd_generate(self)
 
-        self.finalize_panel_generate_button_ddp_checkbox = QtGui.QCheckBox('DDP', parent=self.finalize_panel_generate_button)
+        self.finalize_panel_generate_button = finalize_panel_generate_button(parent=self.finalize_panel)
+        self.finalize_panel_generate_button.setGeometry(0,14,235,60)
+
+
+        #self.finalize_panel_generate_button_label = QtGui.QLabel('<font style="font-size:12px;color:white;padding-left:50px;" ><b>GENERATE<br>IMAGE</b></font>', parent=self.finalize_panel_generate_button)
+        #self.finalize_panel_generate_button_label.setGeometry(50,0,self.finalize_panel_generate_button.width()-50,self.finalize_panel_generate_button.height())
+
+
+        self.finalize_panel_generate_button_background = QtGui.QLabel('<font style="font-size:14px;color:white;" ><b>GENERATE<br>IMAGE</b></font>', parent=self.finalize_panel_generate_button)
+        self.finalize_panel_generate_button_background.setGeometry(0,0,self.finalize_panel_generate_button.width(),self.finalize_panel_generate_button.height())
+        self.finalize_panel_generate_button_background.setStyleSheet("QLabel { padding-left:50px; background-image: url(./graphics/finalize_panel_background_button_normal.png); background-position: center left; }")
+
+        self.finalize_panel_generate_button_background_md5 = QtGui.QLabel(parent=self.finalize_panel_generate_button)
+        #self.finalize_panel_background_right.setPixmap(os.path.join(path_graphics, 'finalize_panel_background_right.png'))
+        self.finalize_panel_generate_button_background_md5.setGeometry(0,0,self.finalize_panel_generate_button.width(),self.finalize_panel_generate_button.height())
+        self.finalize_panel_generate_button_background_md5.setStyleSheet("QLabel { background-image: url(./graphics/finalize_panel_background_button_md5.png); background-position: center left; }")
+        self.finalize_panel_generate_button_background_md5.setShown(False)
+
+        self.finalize_panel_generate_button_background_ddp = QtGui.QLabel(parent=self.finalize_panel_generate_button)
+        #self.finalize_panel_background_right.setPixmap(os.path.join(path_graphics, 'finalize_panel_background_right.png'))
+        self.finalize_panel_generate_button_background_ddp.setGeometry(0,0,self.finalize_panel_generate_button.width(),self.finalize_panel_generate_button.height())
+        self.finalize_panel_generate_button_background_ddp.setStyleSheet("QLabel { background-image: url(./graphics/finalize_panel_background_button_ddp.png); background-position: center left; }")
+        self.finalize_panel_generate_button_background_ddp.setShown(False)
+
+        #self.finalize_panel_generate_button = QtGui.QPushButton('Generate\nDVD', parent=self.finalize_panel)
+        #self.finalize_panel_generate_button.clicked.connect(lambda:)
+
+        #self.finalize_panel_background_right.setPixmap(os.path.join(path_graphics, 'finalize_panel_background_right.png'))
+
+        self.finalize_panel_generate_options = QtGui.QLabel(parent=self.finalize_panel)
+        #self.finalize_panel_background_right.setPixmap(os.path.join(path_graphics, 'finalize_panel_background_right.png'))
+        self.finalize_panel_generate_options.setGeometry(240, 14, 250, 60)
+        self.finalize_panel_generate_options.setStyleSheet("QLabel { background-image: url(./graphics/finalize_panel_options_background.png); background-position: center left; }")
+
+        class finalize_panel_generate_options_toggle(QtGui.QLabel):
+            def enterEvent(widget, event):
+                if self.finalize_panel.x() == self.main_panel.width() - 260:
+                    self.finalize_panel_generate_options_toggle_background.setPixmap(os.path.join(path_graphics, 'finalize_panel_background_button_toggle_left_over.png'))
+                else:
+                    self.finalize_panel_generate_options_toggle_background.setPixmap(os.path.join(path_graphics, 'finalize_panel_background_button_toggle_right_over.png'))
+            def leaveEvent(widget, event):
+                if self.finalize_panel.x() == self.main_panel.width() - 260:
+                    self.finalize_panel_generate_options_toggle_background.setPixmap(os.path.join(path_graphics, 'finalize_panel_background_button_toggle_left.png'))
+                else:
+                    self.finalize_panel_generate_options_toggle_background.setPixmap(os.path.join(path_graphics, 'finalize_panel_background_button_toggle_right.png'))
+            def mousePressEvent(widget, event):
+                if self.finalize_panel.x() == self.main_panel.width() - 260:
+                    generate_effect(self, self.finalize_panel_animation, 'geometry', 500, [self.finalize_panel.x(),self.finalize_panel.y(),self.finalize_panel.width(),self.finalize_panel.height()], [self.main_panel.width() - self.finalize_panel.width(),self.finalize_panel.y(),self.finalize_panel.width(),self.finalize_panel.height()])
+                else:
+                    generate_effect(self, self.finalize_panel_animation, 'geometry', 500, [self.finalize_panel.x(),self.finalize_panel.y(),self.finalize_panel.width(),self.finalize_panel.height()], [self.main_panel.width() - 260,self.finalize_panel.y(),self.finalize_panel.width(),self.finalize_panel.height()])
+                    self.finalize_panel_generate_options_toggle_background.setPixmap(os.path.join(path_graphics, 'finalize_panel_background_button_toggle_left.png'))
+
+        self.finalize_panel_generate_options_toggle = finalize_panel_generate_options_toggle(parent=self.finalize_panel_generate_options)
+        self.finalize_panel_generate_options_toggle.setGeometry(0,0,20,self.finalize_panel_generate_options.height())
+
+        self.finalize_panel_generate_options_toggle_background = QtGui.QLabel(parent=self.finalize_panel_generate_options_toggle)
+        self.finalize_panel_generate_options_toggle_background.setGeometry(0,0,self.finalize_panel_generate_options_toggle.width(),self.finalize_panel_generate_options_toggle.height())
+        self.finalize_panel_generate_options_toggle_background.setPixmap(os.path.join(path_graphics, 'finalize_panel_background_button_toggle_left.png'))
+
+        self.finalize_panel_generate_button_md5_checkbox = QtGui.QCheckBox('MD5', parent=self.finalize_panel_generate_options)
+        self.finalize_panel_generate_button_md5_checkbox.clicked.connect(lambda:set_generate_dvd_kind(self))
+        self.finalize_panel_generate_button_md5_checkbox.setGeometry(20, 20, 50, 20)
+
+        self.finalize_panel_generate_button_ddp_checkbox = QtGui.QCheckBox('DDP', parent=self.finalize_panel_generate_options)
         self.finalize_panel_generate_button_ddp_checkbox.clicked.connect(lambda:set_generate_dvd_kind(self))
+        self.finalize_panel_generate_button_ddp_checkbox.setGeometry(90, 20, 50, 20)
 
         self.generate_dvd_thread_thread = generate_dvd_thread()
         self.generate_dvd_thread_thread.signal.sig.connect(self.generate_dvd_thread_thread_completed)
@@ -2013,12 +2126,12 @@ class main_window(QtGui.QWidget):
 
     def resizeEvent(self, event):
         self.main_panel.setGeometry(0, 0, self.width(), self.height())
-        self.top_panel.setGeometry(0,0,self.main_panel.width(),92)
+        self.top_panel.setGeometry(0,0,self.main_panel.width(),90)
         self.content_panel.setGeometry(0,-40,self.main_panel.width(),self.main_panel.height()+120)
         self.content_panel_background.setGeometry(0,0,self.content_panel.width(), self.content_panel.height())
         self.options_panel.setGeometry(self.main_panel.width()-380,120,380,self.main_panel.height()-80)
         self.options_panel_background.setGeometry(0,0,self.options_panel.width(), self.options_panel.height())
-        self.finalize_panel.setGeometry(self.main_panel.width(),0,370,110)
+
         self.menus_properties_panel.setGeometry(0,self.main_panel.height(),self.main_panel.width(),125)
         self.lock_finalize_panel.setGeometry(0,self.main_panel.height(),self.main_panel.width(),self.main_panel.height())#-370
         self.videos_player_panel.setGeometry(0,self.main_panel.height(),self.main_panel.width()-380,125)
@@ -2056,18 +2169,20 @@ class main_window(QtGui.QWidget):
         self.options_panel_video_chapters_remove.setGeometry(45,self.options_panel_video_panel.height()-40,30,30)
         self.options_panel_video_chapters_edit.setGeometry(80,self.options_panel_video_panel.height()-40,30,30)
         self.options_panel_video_chapters_import.setGeometry(self.options_panel_video_chapters_list.width() - 20,self.options_panel_video_panel.height()-40,30,30)
-        print self.nowediting_panel.y()
-        self.nowediting_panel.setGeometry(0,-40,self.main_panel.width(),170)
-        self.nowediting_dvd_panel.setGeometry(0,-170,self.nowediting_panel.width(),self.nowediting_panel.height())
+        if self.nowediting_is_open:
+            self.nowediting_panel.setGeometry(0,80,self.main_panel.width(),170)
+        else:
+            self.nowediting_panel.setGeometry(0,-40,self.main_panel.width(),170)
+        self.nowediting_dvd_panel.setGeometry(0,0,self.nowediting_panel.width(),self.nowediting_panel.height())
         self.nowediting_dvd_panel_background.setGeometry(0,0,self.nowediting_dvd_panel.width(),self.nowediting_dvd_panel.height())
         self.nowediting_dvd_panel_project_name_label.setGeometry(10,10,(self.nowediting_dvd_panel.width()*.5)-10,20)
-        self.nowediting_menus_panel.setGeometry(0,-170,self.nowediting_panel.width(),self.nowediting_panel.height())
+        self.nowediting_menus_panel.setGeometry(0,0,self.nowediting_panel.width(),self.nowediting_panel.height())
         self.nowediting_menus_panel_background.setGeometry(0,0,self.nowediting_menus_panel.width(),self.nowediting_menus_panel.height())
         self.nowediting_menus_panel_list.setGeometry(10,10,self.nowediting_menus_panel.width()-60,self.nowediting_menus_panel.height()-70)
         self.nowediting_menus_panel_duplicate.setGeometry(self.nowediting_menus_panel.width()-40,10,30,30)
         self.nowediting_menus_panel_add.setGeometry(self.nowediting_menus_panel.width()-40,40,30,30)
         self.nowediting_menus_panel_remove.setGeometry(self.nowediting_menus_panel.width()-40,80,30,30)
-        self.nowediting_videos_panel.setGeometry(0,-170,self.nowediting_panel.width(),self.nowediting_panel.height())
+        self.nowediting_videos_panel.setGeometry(0,0,self.nowediting_panel.width(),self.nowediting_panel.height())
         self.nowediting_videos_panel_background.setGeometry(0,0,self.nowediting_videos_panel.width(),self.nowediting_videos_panel.height())
         self.nowediting_videos_panel_list.setGeometry(10,10,self.nowediting_videos_panel.width()-60,self.nowediting_videos_panel.height()-70)
         self.nowediting_videos_panel_add.setGeometry(self.nowediting_videos_panel.width()-40,40,30,30)
@@ -2076,10 +2191,10 @@ class main_window(QtGui.QWidget):
         self.top_panel_project_name_label.setGeometry(20, 0, self.top_panel.width() , 80)
         self.videos_player_timeline.setGeometry(0,25,self.videos_player_panel.width(),100)
         self.menus_properties_panel_background.setGeometry(0,0,self.menus_properties_panel.width(),self.menus_properties_panel.height())
-        self.finalize_panel_background.setGeometry(0,0,self.finalize_panel.width(),self.finalize_panel.height())
-        self.finalize_panel_generate_button.setGeometry(self.finalize_panel.width() - 220,20,200,50)
-        self.finalize_panel_generate_button_iso_checkbox.setGeometry(self.finalize_panel_generate_button.width() - 60, (self.finalize_panel_generate_button.height()/2) - 20, 50, 20)
-        self.finalize_panel_generate_button_ddp_checkbox.setGeometry(self.finalize_panel_generate_button.width() - 60, self.finalize_panel_generate_button.height()/2, 50, 20)
+        if ((not self.has_menus) or (self.has_menus and len(self.list_of_menus) > 0)) and len(self.list_of_videos) > 0:
+            self.finalize_panel.setGeometry(self.main_panel.width()-260,0,500,100)
+        else:
+            self.finalize_panel.setGeometry(self.main_panel.width(),0,500,100)
 
 ###################################################################################################
 ########################################################################################### PROJETO
@@ -2147,15 +2262,14 @@ def nowediting_dvd_panel_has_menus_update(self):
     self.nowediting_menus_panel.setEnabled(self.has_menus)
 
 def nowediting_panel_button_changed(self, nowediting):
-    self.nowediting = nowediting
-
-    if not self.nowediting == 'menus':
+    if not nowediting == 'menus':
         clean_menus_list_selection(self)
 
-    if not self.nowediting == 'videos':
+    if not nowediting == 'videos':
         clean_videos_list_selection(self)
 
-    if self.nowediting_panel.y() == -40:
+    if not self.nowediting_is_open:
+        self.nowediting_is_open = True
         generate_effect(self, self.nowediting_panel_animation, 'geometry', 500, [self.nowediting_panel.x(),self.nowediting_panel.y(),self.nowediting_panel.width(),self.nowediting_panel.height()], [0,80,self.main_panel.width(),170])
         generate_effect(self, self.content_panel_animation, 'geometry', 500, [self.content_panel.x(),self.content_panel.y(),self.content_panel.width(),self.content_panel.height()], [0,80,self.content_panel.width(),self.content_panel.height()])
         generate_effect(self, self.options_panel_animation, 'geometry', 500, [self.options_panel.x(),self.options_panel.y(),self.options_panel.width(),self.options_panel.height()], [self.main_panel.width(),self.options_panel.y(),self.options_panel.width(),self.options_panel.height()])
@@ -2169,33 +2283,25 @@ def nowediting_panel_button_changed(self, nowediting):
             generate_effect(self, self.videos_player_panel_animation, 'geometry', 500, [self.videos_player_panel.x(),self.videos_player_panel.y(),self.videos_player_panel.width(),self.videos_player_panel.height()], [self.videos_player_panel.x(),self.main_panel.height(),self.videos_player_panel.width(),self.videos_player_panel.height()])
         if not self.menus_properties_panel.y() == self.main_panel.height():
             generate_effect(self, self.menus_properties_panel_animation, 'geometry', 500, [self.menus_properties_panel.x(),self.menus_properties_panel.y(),self.menus_properties_panel.width(),self.menus_properties_panel.height()], [self.menus_properties_panel.x(),self.main_panel.height(),self.menus_properties_panel.width(),self.menus_properties_panel.height()])
-
-    elif self.nowediting_panel.y() == 80:
-        if (self.nowediting == 'dvd' and not self.nowediting_panel_dvd_button_background.isVisible()) or (self.nowediting == 'menus' and not self.nowediting_panel_menus_button_background.isVisible()) or (self.nowediting == 'videos' and not self.nowediting_panel_videos_button_background.isVisible()):
+    else:
+        if nowediting == self.nowediting:
+            self.nowediting_is_open = False
             generate_effect(self, self.nowediting_panel_animation, 'geometry', 500, [self.nowediting_panel.x(),self.nowediting_panel.y(),self.nowediting_panel.width(),self.nowediting_panel.height()], [0,-40,self.main_panel.width(),170])
             generate_effect(self, self.content_panel_animation, 'geometry', 500, [self.content_panel.x(),self.content_panel.y(),self.content_panel.width(),self.content_panel.height()], [0,-40,self.content_panel.width(),self.content_panel.height()])
             if not self.options_panel.x() == self.main_panel.width() - 380 and (self.nowediting == 'dvd' or (self.nowediting == 'menus' and self.selected_menu) or (self.nowediting == 'videos' and self.selected_video) ):
                 generate_effect(self, self.options_panel_animation, 'geometry', 500, [self.options_panel.x(),self.options_panel.y(),self.options_panel.width(),self.options_panel.height()], [self.main_panel.width()-380,self.options_panel.y(),self.options_panel.width(),self.options_panel.height()])
 
-        if self.nowediting == 'dvd':
-            self.options_panel_dvd_panel.setShown(True)
-            self.options_panel_menu_panel.setShown(False)
-            self.options_panel_video_panel.setShown(False)
+        elif nowediting == 'dvd':
+            None
 
-        elif self.nowediting == 'menus':
-            self.options_panel_dvd_panel.setShown(False)
-            self.options_panel_menu_panel.setShown(True)
-            self.options_panel_video_panel.setShown(False)
+        elif nowediting == 'menus':
             if self.selected_menu:
                 if not self.menus_properties_panel.y() == self.main_panel.height() - 125:
                     generate_effect(self, self.menus_properties_panel_animation, 'geometry', 500, [self.menus_properties_panel.x(),self.menus_properties_panel.y(),self.menus_properties_panel.width(),self.menus_properties_panel.height()], [self.menus_properties_panel.x(),self.main_panel.height() - 125,self.menus_properties_panel.width(),self.menus_properties_panel.height()])
                 if not self.options_panel.x() == self.main_panel.width() - 380:
                     generate_effect(self, self.options_panel_animation, 'geometry', 500, [self.options_panel.x(),self.options_panel.y(),self.options_panel.width(),self.options_panel.height()], [self.main_panel.width()-380,self.options_panel.y(),self.options_panel.width(),self.options_panel.height()])
 
-        elif self.nowediting == 'videos':
-            self.options_panel_dvd_panel.setShown(False)
-            self.options_panel_menu_panel.setShown(False)
-            self.options_panel_video_panel.setShown(True)
+        elif nowediting == 'videos':
             if self.selected_video:
                 self.preview_video_widget.setShown(True)
                 self.preview.setShown(False)
@@ -2204,32 +2310,52 @@ def nowediting_panel_button_changed(self, nowediting):
                 if not self.options_panel.x() == self.main_panel.width() - 380:
                     generate_effect(self, self.options_panel_animation, 'geometry', 500, [self.options_panel.x(),self.options_panel.y(),self.options_panel.width(),self.options_panel.height()], [self.main_panel.width()-380,self.options_panel.y(),self.options_panel.width(),self.options_panel.height()])
 
+    self.nowediting = nowediting
+
     if self.nowediting == 'dvd':
-        self.nowediting_panel_dvd_button_background.setShown(False)
-        self.nowediting_panel_menus_button_background.setShown(True)
-        self.nowediting_panel_videos_button_background.setShown(True)
-        generate_effect(self, self.nowediting_dvd_panel_animation, 'geometry', 500, [self.nowediting_dvd_panel.x(),self.nowediting_dvd_panel.y(),self.nowediting_dvd_panel.width(),self.nowediting_dvd_panel.height()], [self.nowediting_dvd_panel.x(),0,self.nowediting_dvd_panel.width(),self.nowediting_dvd_panel.height()])
-        generate_effect(self, self.nowediting_menus_panel_animation, 'geometry', 500, [self.nowediting_menus_panel.x(),self.nowediting_menus_panel.y(),self.nowediting_menus_panel.width(),self.nowediting_menus_panel.height()], [self.nowediting_menus_panel.x(),-170,self.nowediting_menus_panel.width(),self.nowediting_menus_panel.height()])
-        generate_effect(self, self.nowediting_videos_panel_animation, 'geometry', 500, [self.nowediting_videos_panel.x(),self.nowediting_videos_panel.y(),self.nowediting_videos_panel.width(),self.nowediting_videos_panel.height()], [self.nowediting_videos_panel.x(),-170,self.nowediting_videos_panel.width(),self.nowediting_videos_panel.height()])
+        self.options_panel_dvd_panel.setShown(True)
+        self.options_panel_menu_panel.setShown(False)
+        self.options_panel_video_panel.setShown(False)
+        self.nowediting_dvd_panel.setShown(True)
+        self.nowediting_panel_dvd_button_background.setShown(True)
+        self.nowediting_menus_panel.setShown(False)
+        self.nowediting_panel_menus_button_background.setShown(False)
+        self.nowediting_videos_panel.setShown(False)
+        self.nowediting_panel_videos_button_background.setShown(False)
+        #generate_effect(self, self.nowediting_dvd_panel_animation, 'geometry', 500, [self.nowediting_dvd_panel.x(),self.nowediting_dvd_panel.y(),self.nowediting_dvd_panel.width(),self.nowediting_dvd_panel.height()], [self.nowediting_dvd_panel.x(),0,self.nowediting_dvd_panel.width(),self.nowediting_dvd_panel.height()])
+        #generate_effect(self, self.nowediting_menus_panel_animation, 'geometry', 500, [self.nowediting_menus_panel.x(),self.nowediting_menus_panel.y(),self.nowediting_menus_panel.width(),self.nowediting_menus_panel.height()], [self.nowediting_menus_panel.x(),-170,self.nowediting_menus_panel.width(),self.nowediting_menus_panel.height()])
+        #generate_effect(self, self.nowediting_videos_panel_animation, 'geometry', 500, [self.nowediting_videos_panel.x(),self.nowediting_videos_panel.y(),self.nowediting_videos_panel.width(),self.nowediting_videos_panel.height()], [self.nowediting_videos_panel.x(),-170,self.nowediting_videos_panel.width(),self.nowediting_videos_panel.height()])
         generate_effect(self, self.videos_player_panel_animation, 'geometry', 500, [self.videos_player_panel.x(),self.videos_player_panel.y(),self.videos_player_panel.width(),self.videos_player_panel.height()], [self.videos_player_panel.x(),self.main_panel.height(),self.videos_player_panel.width(),self.videos_player_panel.height()])
         generate_effect(self, self.menus_properties_panel_animation, 'geometry', 500, [self.menus_properties_panel.x(),self.menus_properties_panel.y(),self.menus_properties_panel.width(),self.menus_properties_panel.height()], [self.menus_properties_panel.x(),self.main_panel.height(),self.menus_properties_panel.width(),self.menus_properties_panel.height()])
 
     elif self.nowediting == 'menus':
-        self.nowediting_panel_dvd_button_background.setShown(True)
-        self.nowediting_panel_menus_button_background.setShown(False)
-        self.nowediting_panel_videos_button_background.setShown(True)
-        generate_effect(self, self.nowediting_dvd_panel_animation, 'geometry', 500, [self.nowediting_dvd_panel.x(),self.nowediting_dvd_panel.y(),self.nowediting_dvd_panel.width(),self.nowediting_dvd_panel.height()], [self.nowediting_dvd_panel.x(),-170,self.nowediting_dvd_panel.width(),self.nowediting_dvd_panel.height()])
-        generate_effect(self, self.nowediting_menus_panel_animation, 'geometry', 500, [self.nowediting_menus_panel.x(),self.nowediting_menus_panel.y(),self.nowediting_menus_panel.width(),self.nowediting_menus_panel.height()], [self.nowediting_menus_panel.x(),0,self.nowediting_menus_panel.width(),self.nowediting_menus_panel.height()])
-        generate_effect(self, self.nowediting_videos_panel_animation, 'geometry', 500, [self.nowediting_videos_panel.x(),self.nowediting_videos_panel.y(),self.nowediting_videos_panel.width(),self.nowediting_videos_panel.height()], [self.nowediting_videos_panel.x(),-170,self.nowediting_videos_panel.width(),self.nowediting_videos_panel.height()])
+        self.options_panel_dvd_panel.setShown(False)
+        self.options_panel_menu_panel.setShown(True)
+        self.options_panel_video_panel.setShown(False)
+        self.nowediting_dvd_panel.setShown(False)
+        self.nowediting_panel_dvd_button_background.setShown(False)
+        self.nowediting_menus_panel.setShown(True)
+        self.nowediting_panel_menus_button_background.setShown(True)
+        self.nowediting_videos_panel.setShown(False)
+        self.nowediting_panel_videos_button_background.setShown(False)
+        #generate_effect(self, self.nowediting_dvd_panel_animation, 'geometry', 500, [self.nowediting_dvd_panel.x(),self.nowediting_dvd_panel.y(),self.nowediting_dvd_panel.width(),self.nowediting_dvd_panel.height()], [self.nowediting_dvd_panel.x(),-170,self.nowediting_dvd_panel.width(),self.nowediting_dvd_panel.height()])
+        #generate_effect(self, self.nowediting_menus_panel_animation, 'geometry', 500, [self.nowediting_menus_panel.x(),self.nowediting_menus_panel.y(),self.nowediting_menus_panel.width(),self.nowediting_menus_panel.height()], [self.nowediting_menus_panel.x(),0,self.nowediting_menus_panel.width(),self.nowediting_menus_panel.height()])
+        #generate_effect(self, self.nowediting_videos_panel_animation, 'geometry', 500, [self.nowediting_videos_panel.x(),self.nowediting_videos_panel.y(),self.nowediting_videos_panel.width(),self.nowediting_videos_panel.height()], [self.nowediting_videos_panel.x(),-170,self.nowediting_videos_panel.width(),self.nowediting_videos_panel.height()])
         generate_effect(self, self.videos_player_panel_animation, 'geometry', 500, [self.videos_player_panel.x(),self.videos_player_panel.y(),self.videos_player_panel.width(),self.videos_player_panel.height()], [self.videos_player_panel.x(),self.main_panel.height(),self.videos_player_panel.width(),self.videos_player_panel.height()])
 
     elif self.nowediting == 'videos':
-        self.nowediting_panel_dvd_button_background.setShown(True)
-        self.nowediting_panel_menus_button_background.setShown(True)
-        self.nowediting_panel_videos_button_background.setShown(False)
-        generate_effect(self, self.nowediting_dvd_panel_animation, 'geometry', 500, [self.nowediting_dvd_panel.x(),self.nowediting_dvd_panel.y(),self.nowediting_dvd_panel.width(),self.nowediting_dvd_panel.height()], [self.nowediting_dvd_panel.x(),-170,self.nowediting_dvd_panel.width(),self.nowediting_dvd_panel.height()])
-        generate_effect(self, self.nowediting_menus_panel_animation, 'geometry', 500, [self.nowediting_menus_panel.x(),self.nowediting_menus_panel.y(),self.nowediting_menus_panel.width(),self.nowediting_menus_panel.height()], [self.nowediting_menus_panel.x(),-170,self.nowediting_menus_panel.width(),self.nowediting_menus_panel.height()])
-        generate_effect(self, self.nowediting_videos_panel_animation, 'geometry', 500, [self.nowediting_videos_panel.x(),self.nowediting_videos_panel.y(),self.nowediting_videos_panel.width(),self.nowediting_videos_panel.height()], [self.nowediting_videos_panel.x(),0,self.nowediting_videos_panel.width(),self.nowediting_videos_panel.height()])
+        self.options_panel_dvd_panel.setShown(False)
+        self.options_panel_menu_panel.setShown(False)
+        self.options_panel_video_panel.setShown(True)
+        self.nowediting_dvd_panel.setShown(False)
+        self.nowediting_panel_dvd_button_background.setShown(False)
+        self.nowediting_menus_panel.setShown(False)
+        self.nowediting_panel_menus_button_background.setShown(False)
+        self.nowediting_videos_panel.setShown(True)
+        self.nowediting_panel_videos_button_background.setShown(True)
+        #generate_effect(self, self.nowediting_dvd_panel_animation, 'geometry', 500, [self.nowediting_dvd_panel.x(),self.nowediting_dvd_panel.y(),self.nowediting_dvd_panel.width(),self.nowediting_dvd_panel.height()], [self.nowediting_dvd_panel.x(),-170,self.nowediting_dvd_panel.width(),self.nowediting_dvd_panel.height()])
+        #generate_effect(self, self.nowediting_menus_panel_animation, 'geometry', 500, [self.nowediting_menus_panel.x(),self.nowediting_menus_panel.y(),self.nowediting_menus_panel.width(),self.nowediting_menus_panel.height()], [self.nowediting_menus_panel.x(),-170,self.nowediting_menus_panel.width(),self.nowediting_menus_panel.height()])
+        #generate_effect(self, self.nowediting_videos_panel_animation, 'geometry', 500, [self.nowediting_videos_panel.x(),self.nowediting_videos_panel.y(),self.nowediting_videos_panel.width(),self.nowediting_videos_panel.height()], [self.nowediting_videos_panel.x(),0,self.nowediting_videos_panel.width(),self.nowediting_videos_panel.height()])
         generate_effect(self, self.menus_properties_panel_animation, 'geometry', 500, [self.menus_properties_panel.x(),self.menus_properties_panel.y(),self.menus_properties_panel.width(),self.menus_properties_panel.height()], [self.menus_properties_panel.x(),self.main_panel.height(),self.menus_properties_panel.width(),self.menus_properties_panel.height()])
 
     update_changes(self)
@@ -2285,7 +2411,7 @@ def clean_changes(self):
 
     self.options_panel_menu_buttons_position_box.setEnabled(False)
 
-    self.finalize_panel_generate_button_iso_checkbox.setChecked(True)
+    self.finalize_panel_generate_button_md5_checkbox.setChecked(False)
     self.finalize_panel_generate_button_ddp_checkbox.setChecked(False)
 
     self.preview_video_widget.setShown(False)
@@ -2803,7 +2929,7 @@ def update_changes(self):
         self.options_panel_video_resolution_combo.setCurrentIndex(self.dict_of_videos[self.selected_video][7])
 
     if ((not self.has_menus) or (self.has_menus and len(self.list_of_menus) > 0)) and len(self.list_of_videos) > 0:
-        generate_effect(self, self.finalize_panel_animation, 'geometry', 500, [self.finalize_panel.x(),self.finalize_panel.y(),self.finalize_panel.width(),self.finalize_panel.height()], [self.main_panel.width() - 370,self.finalize_panel.y(),self.finalize_panel.width(),self.finalize_panel.height()])
+        generate_effect(self, self.finalize_panel_animation, 'geometry', 500, [self.finalize_panel.x(),self.finalize_panel.y(),self.finalize_panel.width(),self.finalize_panel.height()], [self.main_panel.width() - 260,self.finalize_panel.y(),self.finalize_panel.width(),self.finalize_panel.height()])
     else:
         generate_effect(self, self.finalize_panel_animation, 'geometry', 500, [self.finalize_panel.x(),self.finalize_panel.y(),self.finalize_panel.width(),self.finalize_panel.height()], [self.main_panel.width(),self.finalize_panel.y(),self.finalize_panel.width(),self.finalize_panel.height()])
 
@@ -2966,8 +3092,19 @@ def sort_list_of_chapters(dict_of_chapters):
     return new_list
 
 def set_generate_dvd_kind(self):
-    if not self.finalize_panel_generate_button_iso_checkbox.isChecked() and not self.finalize_panel_generate_button_ddp_checkbox.isChecked():
-        self.finalize_panel_generate_button_iso_checkbox.setChecked(True)
+    if self.finalize_panel_generate_button_ddp_checkbox.isChecked():
+        self.finalize_panel_generate_button_background_ddp.setShown(True)
+    else:
+        self.finalize_panel_generate_button_background_ddp.setShown(False)
+
+    if self.finalize_panel_generate_button_md5_checkbox.isChecked():
+        self.finalize_panel_generate_button_background_md5.setShown(True)
+    else:
+        self.finalize_panel_generate_button_background_md5.setShown(False)
+
+
+    #if not self.finalize_panel_generate_button_iso_checkbox.isChecked() and not self.finalize_panel_generate_button_ddp_checkbox.isChecked():
+    #    self.finalize_panel_generate_button_iso_checkbox.setChecked(True)
 
 ###################################################################################################
 ############################################################################################# MENUS
@@ -3161,7 +3298,6 @@ def remove_menu(self):
 
     for menu in self.list_of_menus:
         for button in self.dict_of_menus[menu][1]:
-            print self.dict_of_menus[menu][2][button][4]
             if self.dict_of_menus[menu][2][button][4] == self.selected_menu:
                 self.dict_of_menus[menu][2][button][4] = None
 
@@ -3173,8 +3309,8 @@ def clean_menus_list_selection(self):
     self.selected_menu = None
     self.no_preview_label.setShown(True)
     self.nowediting_menus_panel_list.setCurrentItem(None)
-    self.nowediting_menus_panel_duplicate.setEnabled()
-    self.nowediting_menus_panel_remove.setEnabled()
+    self.nowediting_menus_panel_duplicate.setEnabled(False)
+    self.nowediting_menus_panel_remove.setEnabled(False)
     clean_buttons_selection(self)
 
 
@@ -3230,8 +3366,6 @@ def menu_buttons_set_geometry(self):
 def populate_menu_buttons_list(self):
     self.options_panel_menu_buttons.clear()
     self.options_panel_menu_buttons_edit.setText('')
-    print self.selected_menu
-    print self.dict_of_menus[self.selected_menu][1]
     for button in self.dict_of_menus[self.selected_menu][1]:
         self.options_panel_menu_buttons.addItem(button)
 
@@ -3654,8 +3788,9 @@ def dvd_generate(self):
 
     self.generate_dvd_thread_thread.audio_datarate = int(self.selected_audio_datarate.split(' ')[0])
 
+    self.generate_dvd_thread_thread.generate_md5 = self.finalize_panel_generate_button_md5_checkbox.isChecked()
     self.generate_dvd_thread_thread.generate_ddp = self.finalize_panel_generate_button_ddp_checkbox.isChecked()
-    self.generate_dvd_thread_thread.generate_iso = self.finalize_panel_generate_button_iso_checkbox.isChecked()
+    #self.generate_dvd_thread_thread.generate_iso = self.finalize_panel_generate_button_iso_checkbox.isChecked()
 
     self.generate_dvd_thread_thread.start()
 
@@ -3675,11 +3810,11 @@ app.addLibraryPath(app.applicationDirPath() + "/../PlugIns")
 app.setStyle("plastique")
 app.setApplicationName("Open DVD Producer")
 font_database = QtGui.QFontDatabase()
-font_database.addApplicationFont(os.path.join(path_opendvdproducer, 'Ubuntu-RI.ttf'))
-font_database.addApplicationFont(os.path.join(path_opendvdproducer, 'Ubuntu-R.ttf'))
-font_database.addApplicationFont(os.path.join(path_opendvdproducer, 'Ubuntu-B.ttf'))
-font_database.addApplicationFont(os.path.join(path_opendvdproducer, 'Ubuntu-BI.ttf'))
-font_database.addApplicationFont(os.path.join(path_opendvdproducer, 'UbuntuMono-R.ttf'))
+font_database.addApplicationFont(os.path.join(path_opendvdproducer, 'resources', 'Ubuntu-RI.ttf'))
+font_database.addApplicationFont(os.path.join(path_opendvdproducer, 'resources', 'Ubuntu-R.ttf'))
+font_database.addApplicationFont(os.path.join(path_opendvdproducer, 'resources', 'Ubuntu-B.ttf'))
+font_database.addApplicationFont(os.path.join(path_opendvdproducer, 'resources', 'Ubuntu-BI.ttf'))
+font_database.addApplicationFont(os.path.join(path_opendvdproducer, 'resources', 'UbuntuMono-R.ttf'))
 app.setFont(QtGui.QFont('Ubuntu', interface_font_size))
 app.setDesktopSettingsAware(False)
 app.main = main_window()
