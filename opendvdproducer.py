@@ -2096,10 +2096,10 @@ class main_window(QtGui.QWidget):
         self.generate_dvd_thread_thread = generate_dvd_thread()
         self.generate_dvd_thread_thread.signal.sig.connect(self.generate_dvd_thread_thread_completed)
 
-
         self.setGeometry(0, 0, QtGui.QDesktopWidget().screenGeometry().width(), QtGui.QDesktopWidget().screenGeometry().height())
 
-        self.showMaximized()
+        clean_changes(self)
+        self.showMaximized() # I know, extremely ugly
         clean_changes(self)
 
     def generate_dvd_thread_thread_completed(self, data):
