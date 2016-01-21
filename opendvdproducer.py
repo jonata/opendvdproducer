@@ -3758,7 +3758,7 @@ def dvd_generate(self):
         self.generate_dvd_thread_thread.project_name = self.project_name
 
     if self.audio_formats[self.selected_audio_format] == 'MP2 48kHz':
-        self.generate_dvd_thread_thread.audio_codec = 'pcm_s16le'
+        self.generate_dvd_thread_thread.audio_codec = 'mp2'#'pcm_s16le'
 
     if self.video_formats[self.selected_video_format].split(' ')[0] == 'NTSC':
         self.generate_dvd_thread_thread.framerate = '29.97'
