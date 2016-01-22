@@ -754,13 +754,14 @@ class main_window(QtGui.QWidget):
         #self.setMaximumSize(self.width(), self.height())
         #self.setMinimumSize(self.width(), self.height())
         self.setWindowIcon(QtGui.QIcon(os.path.join(path_graphics, 'opendvdproducer.png')))
-        self.move((QtGui.QDesktopWidget().screenGeometry().width()-self.geometry().width())/2, (QtGui.QDesktopWidget().screenGeometry().height()-self.geometry().height())/2)
+
 
         self.video_formats = ['PAL 720x576', 'NTSC 720x480']
         self.aspect_ratios = ['16:9', '4:3']
         self.audio_formats = ['MP2 48kHz', 'AC3 48kHz']
         self.resolutions = []
         self.nowediting_is_open = True
+        #self.has_menus = True
 
         self.main_panel = QtGui.QWidget(parent=self)
 
@@ -1667,12 +1668,13 @@ class main_window(QtGui.QWidget):
                 painter = QtGui.QPainter(widget)
                 if self.selected_video:
                     painter.setRenderHint(QtGui.QPainter.Antialiasing)
+                    rectangle = QtCore.QRectF(0, 0, widget.width(),widget.height())
                     pixmap = QtGui.QPixmap(os.path.join(path_graphics, 'videos_player_timeline_background.png'))
-                    painter.drawPixmap(0,0,pixmap)
+                    painter.fillRect(rectangle,pixmap)
                     if self.nowediting == 'videos':
                         for chapter in self.dict_of_videos[self.selected_video][1]:
                             text_size = painter.fontMetrics().width(chapter)
-                            mark = convert_timecode_to_miliseconds(self.dict_of_videos[self.selected_video][2][chapter]) / ((self.dict_of_videos[self.selected_video][5]*1000)/self.main_panel.width()-380)
+                            mark = convert_timecode_to_miliseconds(self.dict_of_videos[self.selected_video][2][chapter]) / ((self.dict_of_videos[self.selected_video][5]*1000)/widget.width())
                             if chapter == self.selected_video_chapter:
                                 painter.setBrush(QtGui.QColor.fromRgb(80,80,80,a=200))
                             else:
@@ -1690,13 +1692,13 @@ class main_window(QtGui.QWidget):
                             rectangle = QtCore.QRectF((mark * 1.0) + 5.0, 30.0, text_size + 10.0,20.0)
                             painter.drawText(rectangle, QtCore.Qt.AlignLeft, chapter)
                     pixmap = QtGui.QPixmap(os.path.join(path_graphics, 'videos_player_timeline_seek.png'))
-                    painter.drawPixmap((self.preview_video_obj.currentTime() / ((self.dict_of_videos[self.selected_video][5]*1000)/self.main_panel.width()-380))-10,0,pixmap)
+                    painter.drawPixmap((self.preview_video_obj.currentTime() / ((self.dict_of_videos[self.selected_video][5]*1000)/widget.width()))-10,0,pixmap)
                 painter.end()
 
             def mousePressEvent(widget, event):
                 for chapter in self.dict_of_videos[self.selected_video][1]:
                     text_size = QtGui.QFontMetrics(QtGui.QFont("Ubuntu", 8)).width(chapter)
-                    mark = convert_timecode_to_miliseconds(self.dict_of_videos[self.selected_video][2][chapter]) / ((self.dict_of_videos[self.selected_video][5]*1000)/self.main_panel.width()-380)
+                    mark = convert_timecode_to_miliseconds(self.dict_of_videos[self.selected_video][2][chapter]) / ((self.dict_of_videos[self.selected_video][5]*1000)/widget.width())
 
                     if event.pos().y() > 29.0 and event.pos().y() < 41.0 and event.pos().x() > mark and event.pos().x() < (mark + text_size + 10.0):
                         self.selected_video_chapter = chapter
@@ -1705,13 +1707,13 @@ class main_window(QtGui.QWidget):
                     else:
                         self.selected_video_chapter = None
                 if self.selected_video_chapter == None:
-                    self.preview_video_obj.seek(event.pos().x() * ((self.dict_of_videos[self.selected_video][5]*1000)/self.main_panel.width()-380) )
+                    self.preview_video_obj.seek(event.pos().x() * ((self.dict_of_videos[self.selected_video][5]*1000)/widget.width()) )
                 update_timeline(self)
 
             def mouseReleaseEvent(widget, event):
                 update_timeline(self)
             def mouseMoveEvent(widget, event):
-                self.preview_video_obj.seek(event.pos().x() * ((self.dict_of_videos[self.selected_video][5]*1000)/self.main_panel.width()-380) )
+                self.preview_video_obj.seek(event.pos().x() * ((self.dict_of_videos[self.selected_video][5]*1000)/widget.width()) )
                 update_timeline(self)
 
         self.videos_player_timeline = videos_player_timeline(parent=self.videos_player_panel)
@@ -1850,8 +1852,15 @@ class main_window(QtGui.QWidget):
         self.menus_properties_panel_animation = QtCore.QPropertyAnimation(self.menus_properties_panel, 'geometry')
         self.menus_properties_panel_animation.setEasingCurve(QtCore.QEasingCurve.OutCirc)
 
-        self.menus_properties_panel_background = QtGui.QLabel(parent=self.menus_properties_panel)
-        self.menus_properties_panel_background.setPixmap(os.path.join(path_graphics, 'menus_properties_panel_background.png'))
+        self.menus_properties_panel_background_left = QtGui.QLabel(parent=self.menus_properties_panel)
+        self.menus_properties_panel_background_left.setStyleSheet("QLabel { background-image: url(./graphics/menus_properties_panel_background.png); background-position: top left; background-repeat: repeat-x; }")
+
+        self.menus_properties_panel_background_center = QtGui.QLabel('<font style="color:white;">PROPERTIES</font>', parent=self.menus_properties_panel)
+        self.menus_properties_panel_background_center.setStyleSheet("QLabel { padding-top:3px; background-image: url(./graphics/menus_properties_panel_background_center.png); background-position: top middle; background-repeat: no-repeat; }")
+        self.menus_properties_panel_background_center.setAlignment(QtCore.Qt.AlignTop | QtCore.Qt.AlignHCenter)
+
+        self.menus_properties_panel_background_right = QtGui.QLabel(parent=self.menus_properties_panel)
+        self.menus_properties_panel_background_right.setStyleSheet("QLabel { background-image: url(./graphics/menus_properties_panel_background.png); background-position: top right; background-repeat: repeat-x; }")
 
         self.menus_properties_panel_background_file_label = QtGui.QLabel(parent=self.menus_properties_panel)
         self.menus_properties_panel_background_file_label.setGeometry(10,30,90,20)
@@ -2087,10 +2096,12 @@ class main_window(QtGui.QWidget):
 
         self.finalize_panel_generate_button_md5_checkbox = QtGui.QCheckBox('MD5', parent=self.finalize_panel_generate_options)
         self.finalize_panel_generate_button_md5_checkbox.clicked.connect(lambda:set_generate_dvd_kind(self))
+        self.finalize_panel_generate_button_md5_checkbox.setStyleSheet('color:silver')
         self.finalize_panel_generate_button_md5_checkbox.setGeometry(40, 20, 50, 20)
 
         self.finalize_panel_generate_button_ddp_checkbox = QtGui.QCheckBox('DDP', parent=self.finalize_panel_generate_options)
         self.finalize_panel_generate_button_ddp_checkbox.clicked.connect(lambda:set_generate_dvd_kind(self))
+        self.finalize_panel_generate_button_ddp_checkbox.setStyleSheet('color:silver')
         self.finalize_panel_generate_button_ddp_checkbox.setGeometry(110, 20, 50, 20)
 
         self.generate_dvd_thread_thread = generate_dvd_thread()
@@ -2098,9 +2109,14 @@ class main_window(QtGui.QWidget):
 
         self.setGeometry(0, 0, QtGui.QDesktopWidget().screenGeometry().width(), QtGui.QDesktopWidget().screenGeometry().height())
 
-        clean_changes(self)
-        self.showMaximized() # I know, extremely ugly
-        clean_changes(self)
+        #clean_changes(self)
+        #print self.videos_player_panel.width()
+        #self.showMaximized() # I know, extremely ugly
+        #print self.videos_player_panel.width()
+        #clean_changes(self)
+
+
+
 
     def generate_dvd_thread_thread_completed(self, data):
 
@@ -2133,10 +2149,7 @@ class main_window(QtGui.QWidget):
         self.content_panel_background.setGeometry(0,0,self.content_panel.width(), self.content_panel.height())
         self.options_panel.setGeometry(self.main_panel.width()-380,120,380,self.main_panel.height()-80)
         self.options_panel_background.setGeometry(0,0,self.options_panel.width(), self.options_panel.height())
-
-        self.menus_properties_panel.setGeometry(0,self.main_panel.height(),self.main_panel.width(),125)
         self.lock_finalize_panel.setGeometry(0,self.main_panel.height(),self.main_panel.width(),self.main_panel.height())#-370
-        self.videos_player_panel.setGeometry(0,self.main_panel.height(),self.main_panel.width()-380,125)
         self.options_panel_dvd_panel.setGeometry(10,0,self.options_panel.width()-10,self.options_panel.height())
         self.options_panel_menu_panel.setGeometry(10,0,self.options_panel.width()-10,self.options_panel.height())
         self.options_panel_menu_buttons_label.setGeometry(10,35,self.options_panel_menu_panel.width()-20,15)
@@ -2171,10 +2184,22 @@ class main_window(QtGui.QWidget):
         self.options_panel_video_chapters_remove.setGeometry(45,self.options_panel_video_panel.height()-40,30,30)
         self.options_panel_video_chapters_edit.setGeometry(80,self.options_panel_video_panel.height()-40,30,30)
         self.options_panel_video_chapters_import.setGeometry(self.options_panel_video_chapters_list.width() - 20,self.options_panel_video_panel.height()-40,30,30)
-        if self.nowediting_is_open:
-            self.nowediting_panel.setGeometry(0,80,self.main_panel.width(),170)
-        else:
+
+        if not self.nowediting_is_open:
             self.nowediting_panel.setGeometry(0,-40,self.main_panel.width(),170)
+            if self.nowediting == 'menus' and self.selected_menu:
+                self.menus_properties_panel.setGeometry(0,self.main_panel.height()-125,self.main_panel.width() - self.options_panel.width() + 10,125)
+            elif self.nowediting == 'videos' and self.selected_video:
+                self.videos_player_panel.setGeometry(0,self.main_panel.height()-125,self.main_panel.width() - self.options_panel.width() + 10,125)
+        else:
+            self.nowediting_panel.setGeometry(0,80,self.main_panel.width(),170)
+            self.menus_properties_panel.setGeometry(0,self.main_panel.height(),self.main_panel.width() - self.options_panel.width() + 10,125)
+            self.videos_player_panel.setGeometry(0,self.main_panel.height(),self.main_panel.width() - self.options_panel.width() + 10,125)
+
+        self.videos_player_timeline.setGeometry(0,25,self.videos_player_panel.width(),100)
+        self.menus_properties_panel_background_left.setGeometry(0,0,(self.menus_properties_panel.width()/2)-78,self.menus_properties_panel.height())
+        self.menus_properties_panel_background_center.setGeometry((self.menus_properties_panel.width()/2)-78,0,156,self.menus_properties_panel.height())
+        self.menus_properties_panel_background_right.setGeometry((self.menus_properties_panel.width()/2)+78,0,(self.menus_properties_panel.width()/2)-78,self.menus_properties_panel.height())
         self.nowediting_dvd_panel.setGeometry(0,0,self.nowediting_panel.width(),self.nowediting_panel.height())
         self.nowediting_dvd_panel_background.setGeometry(0,0,self.nowediting_dvd_panel.width(),self.nowediting_dvd_panel.height())
         self.nowediting_dvd_panel_project_name_label.setGeometry(10,10,(self.nowediting_dvd_panel.width()*.5)-10,20)
@@ -2191,12 +2216,11 @@ class main_window(QtGui.QWidget):
         self.nowediting_videos_panel_remove.setGeometry(self.nowediting_videos_panel.width()-40,80,30,30)
         self.top_panel_background.setGeometry(0,0,self.top_panel.width(),self.top_panel.height())
         self.top_panel_project_name_label.setGeometry(20, 0, self.top_panel.width() , 80)
-        self.videos_player_timeline.setGeometry(0,25,self.videos_player_panel.width(),100)
-        self.menus_properties_panel_background.setGeometry(0,0,self.menus_properties_panel.width(),self.menus_properties_panel.height())
+
         if ((not self.has_menus) or (self.has_menus and len(self.list_of_menus) > 0)) and len(self.list_of_videos) > 0:
-            self.finalize_panel.setGeometry(self.main_panel.width()-260,0,500,100)
+            self.finalize_panel.setGeometry(self.main_panel.width()-260,0,480,100)
         else:
-            self.finalize_panel.setGeometry(self.main_panel.width(),0,500,100)
+            self.finalize_panel.setGeometry(self.main_panel.width(),0,480,100)
 
 ###################################################################################################
 ########################################################################################### PROJETO
@@ -2275,16 +2299,17 @@ def nowediting_panel_button_changed(self, nowediting):
         generate_effect(self, self.nowediting_panel_animation, 'geometry', 500, [self.nowediting_panel.x(),self.nowediting_panel.y(),self.nowediting_panel.width(),self.nowediting_panel.height()], [0,80,self.main_panel.width(),170])
         generate_effect(self, self.content_panel_animation, 'geometry', 500, [self.content_panel.x(),self.content_panel.y(),self.content_panel.width(),self.content_panel.height()], [0,80,self.content_panel.width(),self.content_panel.height()])
         generate_effect(self, self.options_panel_animation, 'geometry', 500, [self.options_panel.x(),self.options_panel.y(),self.options_panel.width(),self.options_panel.height()], [self.main_panel.width(),self.options_panel.y(),self.options_panel.width(),self.options_panel.height()])
-
+        generate_effect(self, self.videos_player_panel_animation, 'geometry', 500, [self.videos_player_panel.x(),self.videos_player_panel.y(),self.videos_player_panel.width(),self.videos_player_panel.height()], [self.videos_player_panel.x(),self.main_panel.height(),self.videos_player_panel.width(),self.videos_player_panel.height()])
         if self.preview_video_obj.state() in [Phonon.PlayingState]:
             video_pause(self)
         self.preview_video_widget.setShown(False)
         self.preview.setShown(True)
 
-        if not self.videos_player_panel.y() == self.main_panel.height():
-            generate_effect(self, self.videos_player_panel_animation, 'geometry', 500, [self.videos_player_panel.x(),self.videos_player_panel.y(),self.videos_player_panel.width(),self.videos_player_panel.height()], [self.videos_player_panel.x(),self.main_panel.height(),self.videos_player_panel.width(),self.videos_player_panel.height()])
-        if not self.menus_properties_panel.y() == self.main_panel.height():
-            generate_effect(self, self.menus_properties_panel_animation, 'geometry', 500, [self.menus_properties_panel.x(),self.menus_properties_panel.y(),self.menus_properties_panel.width(),self.menus_properties_panel.height()], [self.menus_properties_panel.x(),self.main_panel.height(),self.menus_properties_panel.width(),self.menus_properties_panel.height()])
+        #if not self.videos_player_panel.y() == self.main_panel.height():
+        #    generate_effect(self, self.videos_player_panel_animation, 'geometry', 500, [self.videos_player_panel.x(),self.videos_player_panel.y(),self.videos_player_panel.width(),self.videos_player_panel.height()], [self.videos_player_panel.x(),self.main_panel.height(),self.videos_player_panel.width(),self.videos_player_panel.height()])
+        #if not self.menus_properties_panel.y() == self.main_panel.height():
+            #self.menus_properties_panel.setShown(False)
+            #generate_effect(self, self.menus_properties_panel_animation, 'geometry', 500, [self.menus_properties_panel.x(),self.menus_properties_panel.y(),self.menus_properties_panel.width(),self.menus_properties_panel.height()], [self.menus_properties_panel.x(),self.main_panel.height(),self.menus_properties_panel.width(),self.menus_properties_panel.height()])
     else:
         if nowediting == self.nowediting:
             self.nowediting_is_open = False
@@ -2298,8 +2323,9 @@ def nowediting_panel_button_changed(self, nowediting):
 
         elif nowediting == 'menus':
             if self.selected_menu:
-                if not self.menus_properties_panel.y() == self.main_panel.height() - 125:
-                    generate_effect(self, self.menus_properties_panel_animation, 'geometry', 500, [self.menus_properties_panel.x(),self.menus_properties_panel.y(),self.menus_properties_panel.width(),self.menus_properties_panel.height()], [self.menus_properties_panel.x(),self.main_panel.height() - 125,self.menus_properties_panel.width(),self.menus_properties_panel.height()])
+                #if not self.menus_properties_panel.y() == self.main_panel.height() - 125:
+                    #self.menus_properties_panel.setShown(True)
+                generate_effect(self, self.menus_properties_panel_animation, 'geometry', 500, [self.menus_properties_panel.x(),self.menus_properties_panel.y(),self.menus_properties_panel.width(),self.menus_properties_panel.height()], [self.menus_properties_panel.x(),self.main_panel.height() - 125,self.menus_properties_panel.width(),self.menus_properties_panel.height()])
                 if not self.options_panel.x() == self.main_panel.width() - 380:
                     generate_effect(self, self.options_panel_animation, 'geometry', 500, [self.options_panel.x(),self.options_panel.y(),self.options_panel.width(),self.options_panel.height()], [self.main_panel.width()-380,self.options_panel.y(),self.options_panel.width(),self.options_panel.height()])
 
@@ -2307,8 +2333,10 @@ def nowediting_panel_button_changed(self, nowediting):
             if self.selected_video:
                 self.preview_video_widget.setShown(True)
                 self.preview.setShown(False)
-                if not self.videos_player_panel.y() == self.main_panel.height() - 125:
-                    generate_effect(self, self.videos_player_panel_animation, 'geometry', 500, [self.videos_player_panel.x(),self.videos_player_panel.y(),self.videos_player_panel.width(),self.videos_player_panel.height()], [self.videos_player_panel.x(),self.main_panel.height() - 125,self.videos_player_panel.width(),self.videos_player_panel.height()])
+                #if self.nowediting_is_open:
+                    #if not self.videos_player_panel.y() == self.main_panel.height() - 125:
+                    #generate_effect(self, self.videos_player_panel_animation, 'geometry', 500, [self.videos_player_panel.x(),self.videos_player_panel.y(),self.videos_player_panel.width(),self.videos_player_panel.height()], [self.videos_player_panel.x(),self.main_panel.height(),self.videos_player_panel.width(),self.videos_player_panel.height()])
+
                 if not self.options_panel.x() == self.main_panel.width() - 380:
                     generate_effect(self, self.options_panel_animation, 'geometry', 500, [self.options_panel.x(),self.options_panel.y(),self.options_panel.width(),self.options_panel.height()], [self.main_panel.width()-380,self.options_panel.y(),self.options_panel.width(),self.options_panel.height()])
 
@@ -2329,6 +2357,7 @@ def nowediting_panel_button_changed(self, nowediting):
         #generate_effect(self, self.nowediting_videos_panel_animation, 'geometry', 500, [self.nowediting_videos_panel.x(),self.nowediting_videos_panel.y(),self.nowediting_videos_panel.width(),self.nowediting_videos_panel.height()], [self.nowediting_videos_panel.x(),-170,self.nowediting_videos_panel.width(),self.nowediting_videos_panel.height()])
         generate_effect(self, self.videos_player_panel_animation, 'geometry', 500, [self.videos_player_panel.x(),self.videos_player_panel.y(),self.videos_player_panel.width(),self.videos_player_panel.height()], [self.videos_player_panel.x(),self.main_panel.height(),self.videos_player_panel.width(),self.videos_player_panel.height()])
         generate_effect(self, self.menus_properties_panel_animation, 'geometry', 500, [self.menus_properties_panel.x(),self.menus_properties_panel.y(),self.menus_properties_panel.width(),self.menus_properties_panel.height()], [self.menus_properties_panel.x(),self.main_panel.height(),self.menus_properties_panel.width(),self.menus_properties_panel.height()])
+        #self.menus_properties_panel.setShown(False)
 
     elif self.nowediting == 'menus':
         self.options_panel_dvd_panel.setShown(False)
@@ -2344,6 +2373,8 @@ def nowediting_panel_button_changed(self, nowediting):
         #generate_effect(self, self.nowediting_menus_panel_animation, 'geometry', 500, [self.nowediting_menus_panel.x(),self.nowediting_menus_panel.y(),self.nowediting_menus_panel.width(),self.nowediting_menus_panel.height()], [self.nowediting_menus_panel.x(),0,self.nowediting_menus_panel.width(),self.nowediting_menus_panel.height()])
         #generate_effect(self, self.nowediting_videos_panel_animation, 'geometry', 500, [self.nowediting_videos_panel.x(),self.nowediting_videos_panel.y(),self.nowediting_videos_panel.width(),self.nowediting_videos_panel.height()], [self.nowediting_videos_panel.x(),-170,self.nowediting_videos_panel.width(),self.nowediting_videos_panel.height()])
         generate_effect(self, self.videos_player_panel_animation, 'geometry', 500, [self.videos_player_panel.x(),self.videos_player_panel.y(),self.videos_player_panel.width(),self.videos_player_panel.height()], [self.videos_player_panel.x(),self.main_panel.height(),self.videos_player_panel.width(),self.videos_player_panel.height()])
+        #generate_effect(self, self.menus_properties_panel_animation, 'geometry', 500, [self.menus_properties_panel.x(),self.menus_properties_panel.y(),self.menus_properties_panel.width(),self.menus_properties_panel.height()], [self.menus_properties_panel.x(),self.main_panel.height() - 125,self.menus_properties_panel.width(),self.menus_properties_panel.height()])
+        #self.menus_properties_panel.setShown(True)
 
     elif self.nowediting == 'videos':
         self.options_panel_dvd_panel.setShown(False)
@@ -2359,6 +2390,7 @@ def nowediting_panel_button_changed(self, nowediting):
         #generate_effect(self, self.nowediting_menus_panel_animation, 'geometry', 500, [self.nowediting_menus_panel.x(),self.nowediting_menus_panel.y(),self.nowediting_menus_panel.width(),self.nowediting_menus_panel.height()], [self.nowediting_menus_panel.x(),-170,self.nowediting_menus_panel.width(),self.nowediting_menus_panel.height()])
         #generate_effect(self, self.nowediting_videos_panel_animation, 'geometry', 500, [self.nowediting_videos_panel.x(),self.nowediting_videos_panel.y(),self.nowediting_videos_panel.width(),self.nowediting_videos_panel.height()], [self.nowediting_videos_panel.x(),0,self.nowediting_videos_panel.width(),self.nowediting_videos_panel.height()])
         generate_effect(self, self.menus_properties_panel_animation, 'geometry', 500, [self.menus_properties_panel.x(),self.menus_properties_panel.y(),self.menus_properties_panel.width(),self.menus_properties_panel.height()], [self.menus_properties_panel.x(),self.main_panel.height(),self.menus_properties_panel.width(),self.menus_properties_panel.height()])
+        #self.menus_properties_panel.setShown(False)
 
     update_changes(self)
 
@@ -2900,11 +2932,14 @@ def update_changes(self):
             else:
                 self.options_panel_menu_buttons_directions_left.setCurrentIndex(0)
 
-        if self.nowediting == 'menus' and not self.nowediting_panel.y() == -40: #self.menus_properties_panel.y() == self.main_panel.height() and
-            generate_effect(self, self.menus_properties_panel_animation, 'geometry', 500, [self.menus_properties_panel.x(),self.menus_properties_panel.y(),self.menus_properties_panel.width(),self.menus_properties_panel.height()], [self.menus_properties_panel.x(),self.main_panel.height()-125,self.menus_properties_panel.width(),self.menus_properties_panel.height()])
-            generate_effect(self, self.options_panel_animation, 'geometry', 500, [self.options_panel.x(),self.options_panel.y(),self.options_panel.width(),self.options_panel.height()], [self.main_panel.width()-380,self.options_panel.y(),self.options_panel.width(),self.options_panel.height()])
-        elif self.nowediting == 'menus' and self.nowediting_panel.y() == 80:
-            generate_effect(self, self.menus_properties_panel_animation, 'geometry', 500, [self.menus_properties_panel.x(),self.menus_properties_panel.y(),self.menus_properties_panel.width(),self.menus_properties_panel.height()], [self.menus_properties_panel.x(),self.main_panel.height(),self.menus_properties_panel.width(),self.menus_properties_panel.height()])
+        if self.nowediting == 'menus':
+            if self.nowediting_is_open: #self.menus_properties_panel.y() == self.main_panel.height() and
+                #self.menus_properties_panel.setShown(False)
+                generate_effect(self, self.menus_properties_panel_animation, 'geometry', 500, [self.menus_properties_panel.x(),self.menus_properties_panel.y(),self.menus_properties_panel.width(),self.menus_properties_panel.height()], [self.menus_properties_panel.x(),self.main_panel.height(),self.menus_properties_panel.width(),self.menus_properties_panel.height()])
+            else:
+                #self.menus_properties_panel.setShown(True)
+                generate_effect(self, self.menus_properties_panel_animation, 'geometry', 500, [self.menus_properties_panel.x(),self.menus_properties_panel.y(),self.menus_properties_panel.width(),self.menus_properties_panel.height()], [self.menus_properties_panel.x(),self.main_panel.height()-125,self.menus_properties_panel.width(),self.menus_properties_panel.height()])
+                generate_effect(self, self.options_panel_animation, 'geometry', 500, [self.options_panel.x(),self.options_panel.y(),self.options_panel.width(),self.options_panel.height()], [self.main_panel.width()-380,self.options_panel.y(),self.options_panel.width(),self.options_panel.height()])
 
         if len(self.list_of_menus) == 1:
             self.menus_properties_panel_main_menu_checkbox.setShown(False)
@@ -3822,5 +3857,7 @@ app.setDesktopSettingsAware(False)
 app.main = main_window()
 
 app.main.show()
+clean_changes(app.main)
+
 
 sys.exit(app.exec_())
