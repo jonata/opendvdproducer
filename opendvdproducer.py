@@ -10,10 +10,13 @@ reload(sys)
 sys.setdefaultencoding("utf-8")
 
 if sys.platform == 'win32':
-    path_opendvdproducer = getattr(sys, '_MEIPASS', os.getcwd())
-
+    if getattr(sys, 'frozen', False):
+        path_opendvdproducer = path_opendvdproducer = getattr(sys, '_MEIPASS', os.getcwd())#sys._MEIPASS
+    else:
+        path_opendvdproducer = os.path.dirname(os.path.abspath(__file__))
 else:
     path_opendvdproducer = os.path.dirname(sys.argv[0])
+
 
 #os.path.realpath(__file__)#os.path.abspath(os.path.dirname(sys.argv[0]))
 
@@ -371,7 +374,10 @@ class generate_dvd_thread(QtCore.QThread):
                         sound_file = os.path.join(path_opendvdproducer, 'silence.flac')
 
                     sound_length_xml = unicode(subprocess.Popen([ffprobe_bin,'-loglevel', 'error',  '-show_format', '-print_format', 'xml', sound_file], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE).stdout.read(), 'utf-8')
-                    sound_length = float(sound_length_xml.split(' duration="')[1].split('"')[0])
+                    if ' duration="' in sound_length_xml:
+                        sound_length = float(sound_length_xml.split(' duration="')[1].split('"')[0])
+                    else:
+                        sound_length = 60.0
 
                     final_command = [ffmpeg_bin]
                     final_command += '-y',
@@ -741,7 +747,7 @@ class generate_dvd_thread(QtCore.QThread):
             if self.generate_iso:
                 shutil.move(os.path.join(path_tmp, 'movie.iso'), os.path.join(self.actual_project_file.replace(self.actual_project_file.split('/')[-1].split('\\')[-1], ''), self.project_name + '.iso'))
         else:
-            print "NÃO GEROU ISO"
+            None
 
         shutil.rmtree(os.path.join(path_tmp, 'dvd'), ignore_errors=True)
         self.signal.sig.emit('FINISH')
@@ -756,6 +762,8 @@ class main_window(QtGui.QWidget):
         self.aspect_ratios = ['16:9', '4:3']
         self.audio_formats = ['MP2 48kHz', 'AC3 48kHz']
         self.resolutions = []
+
+        self.is_generating = False
 
         self.main_panel = QtGui.QWidget(parent=self)
 
@@ -1074,7 +1082,7 @@ class main_window(QtGui.QWidget):
         self.options_panel_animation.setEasingCurve(QtCore.QEasingCurve.OutCirc)
 
         self.options_panel_background = QtGui.QLabel(parent=self.options_panel)
-        self.options_panel_background.setStyleSheet("QLabel { background-image: url(./graphics/options_panel_background.png); background-position: center right; background-repeat: repeat-y; }")
+        self.options_panel_background.setStyleSheet("QLabel { background-image: url(" + os.path.join(path_graphics, "options_panel_background.png").replace('\\', '/') + "); background-position: center right; background-repeat: repeat-y; }")
 
         self.options_panel_dvd_panel = QtGui.QWidget(parent=self.options_panel)
 
@@ -1433,7 +1441,7 @@ class main_window(QtGui.QWidget):
 
         self.nowediting_dvd_panel_background = QtGui.QLabel(parent=self.nowediting_dvd_panel)
         #self.nowediting_dvd_panel_background.setPixmap(os.path.join(path_graphics, 'nowediting_dvd_panel_background.png'))
-        self.nowediting_dvd_panel_background.setStyleSheet("QLabel {background-image: url(./graphics/nowediting_panel_background.png);background-position: top left; background-repeat: repeat-x;}")
+        self.nowediting_dvd_panel_background.setStyleSheet("QLabel {background-image: url(" + os.path.join(path_graphics, "nowediting_panel_background.png").replace('\\', '/') + ");background-position: top left; background-repeat: repeat-x;}")
         self.nowediting_dvd_panel_background.setAlignment(QtCore.Qt.AlignVCenter | QtCore.Qt.AlignLeft)
 
         self.nowediting_dvd_panel_project_name_label = QtGui.QLabel(parent=self.nowediting_dvd_panel)
@@ -1528,7 +1536,7 @@ class main_window(QtGui.QWidget):
 
         self.nowediting_menus_panel_background = QtGui.QLabel(parent=self.nowediting_menus_panel)
         #self.nowediting_menus_panel_background.setPixmap(os.path.join(path_graphics, 'nowediting_menus_panel_background.png'))
-        self.nowediting_menus_panel_background.setStyleSheet("QLabel {background-image: url(./graphics/nowediting_panel_background.png);background-position: top left; background-repeat: repeat-x;}")
+        self.nowediting_menus_panel_background.setStyleSheet("QLabel {background-image: url(" + os.path.join(path_graphics, "nowediting_panel_background.png").replace('\\', '/') + ");background-position: top left; background-repeat: repeat-x;}")
         self.nowediting_menus_panel_background.setAlignment(QtCore.Qt.AlignVCenter | QtCore.Qt.AlignLeft)
 
         self.nowediting_menus_panel_list = QtGui.QListWidget(parent=self.nowediting_menus_panel)
@@ -1555,7 +1563,7 @@ class main_window(QtGui.QWidget):
 
         self.nowediting_videos_panel_background = QtGui.QLabel(parent=self.nowediting_videos_panel)
         #self.nowediting_videos_panel_background.setPixmap(os.path.join(path_graphics, 'nowediting_videos_panel_background.png'))
-        self.nowediting_videos_panel_background.setStyleSheet("QLabel {background-image: url(./graphics/nowediting_panel_background.png);background-position: top left; background-repeat: repeat-x;}")
+        self.nowediting_videos_panel_background.setStyleSheet("QLabel {background-image: url(" + os.path.join(path_graphics, "nowediting_panel_background.png").replace('\\', '/') + ");background-position: top left; background-repeat: repeat-x;}")
         self.nowediting_videos_panel_background.setAlignment(QtCore.Qt.AlignVCenter | QtCore.Qt.AlignLeft)
 
         self.nowediting_videos_panel_list = QtGui.QListWidget(parent=self.nowediting_videos_panel)
@@ -1574,7 +1582,7 @@ class main_window(QtGui.QWidget):
         self.top_panel = QtGui.QWidget(parent=self.main_panel)
 
         self.top_panel_background = QtGui.QLabel(parent=self.top_panel)
-        self.top_panel_background.setStyleSheet("QLabel {background-image: url(./graphics/top_panel_background.png);background-position: top left; background-repeat: repeat-x;}")
+        self.top_panel_background.setStyleSheet("QLabel {background-image: url(" + os.path.join(path_graphics, "top_panel_background.png").replace('\\', '/') + ");background-position: top left; background-repeat: repeat-x;}")
 
         self.top_panel_project_name_label = QtGui.QLabel(parent=self.main_panel)
         self.top_panel_project_name_label.setAlignment(QtCore.Qt.AlignVCenter)
@@ -1593,7 +1601,7 @@ class main_window(QtGui.QWidget):
 
         self.nowediting_panel_dvd_button_background = QtGui.QLabel(parent=self.nowediting_panel_dvd_button)
         self.nowediting_panel_dvd_button_background.setGeometry(0,0,self.nowediting_panel_dvd_button.width(),self.nowediting_panel_dvd_button.height())
-        self.nowediting_panel_dvd_button_background.setStyleSheet("QLabel {background-image: url(./graphics/nowediting_panel_background_tab.png);background-position: top left; background-repeat: repeat-x;}")
+        self.nowediting_panel_dvd_button_background.setStyleSheet("QLabel {background-image: url(" + os.path.join(path_graphics, "nowediting_panel_background_tab.png").replace('\\', '/') + ");background-position: top left; background-repeat: repeat-x;}")
 
         self.nowediting_panel_dvd_button_icon = QtGui.QLabel(parent=self.nowediting_panel_dvd_button)
         self.nowediting_panel_dvd_button_icon.setGeometry(0,0,self.nowediting_panel_dvd_button.width(),self.nowediting_panel_dvd_button.height())
@@ -1612,7 +1620,7 @@ class main_window(QtGui.QWidget):
 
         self.nowediting_panel_menus_button_background = QtGui.QLabel(parent=self.nowediting_panel_menus_button)
         self.nowediting_panel_menus_button_background.setGeometry(0,0,self.nowediting_panel_menus_button.width(),self.nowediting_panel_menus_button.height())
-        self.nowediting_panel_menus_button_background.setStyleSheet("QLabel {background-image: url(./graphics/nowediting_panel_background_tab.png);background-position: top left; background-repeat: repeat-x;}")
+        self.nowediting_panel_menus_button_background.setStyleSheet("QLabel {background-image: url(" + os.path.join(path_graphics, "nowediting_panel_background_tab.png").replace('\\', '/') + ");background-position: top left; background-repeat: repeat-x;}")
 
         self.nowediting_panel_menus_button_icon = QtGui.QLabel(parent=self.nowediting_panel_menus_button)
         self.nowediting_panel_menus_button_icon.setGeometry(0,0,self.nowediting_panel_menus_button.width(),self.nowediting_panel_menus_button.height())
@@ -1631,7 +1639,7 @@ class main_window(QtGui.QWidget):
 
         self.nowediting_panel_videos_button_background = QtGui.QLabel(parent=self.nowediting_panel_videos_button)
         self.nowediting_panel_videos_button_background.setGeometry(0,0,self.nowediting_panel_videos_button.width(),self.nowediting_panel_videos_button.height())
-        self.nowediting_panel_videos_button_background.setStyleSheet("QLabel {background-image: url(./graphics/nowediting_panel_background_tab.png);background-position: top left; background-repeat: repeat-x;}")
+        self.nowediting_panel_videos_button_background.setStyleSheet("QLabel {background-image: url(" + os.path.join(path_graphics, "nowediting_panel_background_tab.png").replace('\\', '/') + ");background-position: top left; background-repeat: repeat-x;}")
 
         self.nowediting_panel_videos_button_icon = QtGui.QLabel(parent=self.nowediting_panel_videos_button)
         self.nowediting_panel_videos_button_icon.setGeometry(0,0,self.nowediting_panel_videos_button.width(),self.nowediting_panel_videos_button.height())
@@ -1831,14 +1839,14 @@ class main_window(QtGui.QWidget):
         self.menus_properties_panel_animation.setEasingCurve(QtCore.QEasingCurve.OutCirc)
 
         self.menus_properties_panel_background_left = QtGui.QLabel(parent=self.menus_properties_panel)
-        self.menus_properties_panel_background_left.setStyleSheet("QLabel { background-image: url(./graphics/menus_properties_panel_background.png); background-position: top left; background-repeat: repeat-x; }")
+        self.menus_properties_panel_background_left.setStyleSheet("QLabel { background-image: url(" + os.path.join(path_graphics, "menus_properties_panel_background.png").replace('\\', '/') + "); background-position: top left; background-repeat: repeat-x; }")
 
         self.menus_properties_panel_background_center = QtGui.QLabel('<font style="color:white;">PROPERTIES</font>', parent=self.menus_properties_panel)
-        self.menus_properties_panel_background_center.setStyleSheet("QLabel { padding-top:3px; background-image: url(./graphics/menus_properties_panel_background_center.png); background-position: top middle; background-repeat: no-repeat; }")
+        self.menus_properties_panel_background_center.setStyleSheet("QLabel { padding-top:3px; background-image: url(" + os.path.join(path_graphics, "menus_properties_panel_background_center.png").replace('\\', '/') + "); background-position: top middle; background-repeat: no-repeat; }")
         self.menus_properties_panel_background_center.setAlignment(QtCore.Qt.AlignTop | QtCore.Qt.AlignHCenter)
 
         self.menus_properties_panel_background_right = QtGui.QLabel(parent=self.menus_properties_panel)
-        self.menus_properties_panel_background_right.setStyleSheet("QLabel { background-image: url(./graphics/menus_properties_panel_background.png); background-position: top right; background-repeat: repeat-x; }")
+        self.menus_properties_panel_background_right.setStyleSheet("QLabel { background-image: url(" + os.path.join(path_graphics, "menus_properties_panel_background.png").replace('\\', '/') + "); background-position: top right; background-repeat: repeat-x; }")
 
         self.menus_properties_panel_background_file_label = QtGui.QLabel(parent=self.menus_properties_panel)
         self.menus_properties_panel_background_file_label.setGeometry(10,30,90,20)
@@ -1970,25 +1978,25 @@ class main_window(QtGui.QWidget):
         self.lock_finalize_panel_animation.setEasingCurve(QtCore.QEasingCurve.OutCirc)
 
         self.lock_finalize_panel_background = QtGui.QLabel(parent=self.lock_finalize_panel)
-        self.lock_finalize_panel_background.setGeometry(0,0,self.lock_finalize_panel.width(),self.lock_finalize_panel.height())
         self.lock_finalize_panel_background.setPixmap(os.path.join(path_graphics, 'lock_finalize_panel_background.png'))
+        self.lock_finalize_panel_background.setStyleSheet("QLabel { background-image: url(" + os.path.join(path_graphics, "lock_finalize_panel_background.png").replace('\\', '/') + "); background-position: top; background-repeat: repeat-x; }")
 
         self.lock_finalize_dvd_image = QtGui.QLabel(parent=self.lock_finalize_panel)
-        self.lock_finalize_dvd_image.setGeometry(150,745,300,300)
+        self.lock_finalize_dvd_image.setGeometry(150,245,300,300)
         self.lock_finalize_dvd_image.setPixmap(os.path.join(path_graphics, 'finalize_dvd_image.png'))
 
         self.lock_finalize_panel_progress_bar_label = QtGui.QLabel('PROGRESS', parent=self.lock_finalize_panel)
-        self.lock_finalize_panel_progress_bar_label.setGeometry(460, 845, 400, 30)
+        self.lock_finalize_panel_progress_bar_label.setGeometry(460, 345, 400, 30)
         self.lock_finalize_panel_progress_bar_label.setForegroundRole(QtGui.QPalette.Light)
-        self.lock_finalize_panel_progress_bar_label.setShown(False)
+        #self.lock_finalize_panel_progress_bar_label.setShown(False)
 
         self.lock_finalize_panel_progress_bar = QtGui.QProgressBar(parent=self.lock_finalize_panel)
-        self.lock_finalize_panel_progress_bar.setGeometry(460, 875, 400, 40)
+        self.lock_finalize_panel_progress_bar.setGeometry(460, 375, 400, 40)
 
         self.lock_finalize_panel_progress_bar_description = QtGui.QLabel(parent=self.lock_finalize_panel)
-        self.lock_finalize_panel_progress_bar_description.setGeometry(460, 915, 400, 30)
+        self.lock_finalize_panel_progress_bar_description.setGeometry(460, 415, 400, 30)
         self.lock_finalize_panel_progress_bar_description.setForegroundRole(QtGui.QPalette.Light)
-        self.lock_finalize_panel_progress_bar_description.setShown(False)
+        #self.lock_finalize_panel_progress_bar_description.setShown(False)
 
         self.finalize_panel = QtGui.QWidget(parent=self.main_panel)
         self.finalize_panel_animation = QtCore.QPropertyAnimation(self.finalize_panel, 'geometry')
@@ -1996,19 +2004,19 @@ class main_window(QtGui.QWidget):
 
         self.finalize_panel_background_left = QtGui.QLabel(parent=self.finalize_panel)
         #self.finalize_panel_background_left.setPixmap(os.path.join(path_graphics, 'finalize_panel_background_left.png'))
-        self.finalize_panel_background_left.setStyleSheet("QLabel { background-image: url(./graphics/finalize_panel_background_left.png); background-position: top left; }")
+        self.finalize_panel_background_left.setStyleSheet("QLabel { background-image: url(" + os.path.join(path_graphics, "finalize_panel_background_left.png").replace('\\', '/') + "); background-position: top left; }")
         self.finalize_panel_background_left.setGeometry(0,0,50,100)
 
         self.finalize_panel_background_right = QtGui.QLabel(parent=self.finalize_panel)
         #self.finalize_panel_background_right.setPixmap(os.path.join(path_graphics, 'finalize_panel_background_right.png'))
-        self.finalize_panel_background_right.setStyleSheet("QLabel { background-image: url(./graphics/finalize_panel_background_right.png); background-position: top right; background-repeat: repeat-x; }")
+        self.finalize_panel_background_right.setStyleSheet("QLabel { background-image: url(" + os.path.join(path_graphics, "finalize_panel_background_right.png").replace('\\', '/') + "); background-position: top right; background-repeat: repeat-x; }")
         self.finalize_panel_background_right.setGeometry(50,0,450,100)
 
         class finalize_panel_generate_button(QtGui.QWidget):
             def enterEvent(widget, event):
-                self.finalize_panel_generate_button_background.setStyleSheet("QLabel { padding-left:50px;  background-image: url(./graphics/finalize_panel_background_button_over.png); background-position: center left; }")
+                self.finalize_panel_generate_button_background.setStyleSheet("QLabel { padding-left:50px;  background-image: url(" + os.path.join(path_graphics, "finalize_panel_background_button_over.png").replace('\\', '/') + "); background-position: center left; }")
             def leaveEvent(widget, event):
-                self.finalize_panel_generate_button_background.setStyleSheet("QLabel { padding-left:50px;  background-image: url(./graphics/finalize_panel_background_button_normal.png); background-position: center left; }")
+                self.finalize_panel_generate_button_background.setStyleSheet("QLabel { padding-left:50px;  background-image: url(" + os.path.join(path_graphics, "finalize_panel_background_button_normal.png").replace('\\', '/') + "); background-position: center left; }")
             def mousePressEvent(widget, event):
                 dvd_generate(self)
 
@@ -2017,43 +2025,43 @@ class main_window(QtGui.QWidget):
 
         self.finalize_panel_generate_button_background = QtGui.QLabel('<font style="font-size:14px;color:white;" ><b>GENERATE<br>IMAGE</b></font>', parent=self.finalize_panel_generate_button)
         self.finalize_panel_generate_button_background.setGeometry(0,0,self.finalize_panel_generate_button.width(),self.finalize_panel_generate_button.height())
-        self.finalize_panel_generate_button_background.setStyleSheet("QLabel { padding-left:50px; background-image: url(./graphics/finalize_panel_background_button_normal.png); background-position: center left; }")
+        self.finalize_panel_generate_button_background.setStyleSheet("QLabel { padding-left:50px; background-image: url(" + os.path.join(path_graphics, "finalize_panel_background_button_normal.png").replace('\\', '/') + "); background-position: center left; }")
 
         self.finalize_panel_generate_button_background_md5 = QtGui.QLabel(parent=self.finalize_panel_generate_button)
         self.finalize_panel_generate_button_background_md5.setGeometry(0,0,self.finalize_panel_generate_button.width(),self.finalize_panel_generate_button.height())
-        self.finalize_panel_generate_button_background_md5.setStyleSheet("QLabel { background-image: url(./graphics/finalize_panel_background_button_md5.png); background-position: center left; }")
+        self.finalize_panel_generate_button_background_md5.setStyleSheet("QLabel { background-image: url(" + os.path.join(path_graphics, "finalize_panel_background_button_md5.png").replace('\\', '/') + "); background-position: center left; }")
         self.finalize_panel_generate_button_background_md5.setShown(False)
 
         self.finalize_panel_generate_button_background_ddp = QtGui.QLabel(parent=self.finalize_panel_generate_button)
         self.finalize_panel_generate_button_background_ddp.setGeometry(0,0,self.finalize_panel_generate_button.width(),self.finalize_panel_generate_button.height())
-        self.finalize_panel_generate_button_background_ddp.setStyleSheet("QLabel { background-image: url(./graphics/finalize_panel_background_button_ddp.png); background-position: center left; }")
+        self.finalize_panel_generate_button_background_ddp.setStyleSheet("QLabel { background-image: url(" + os.path.join(path_graphics, "finalize_panel_background_button_ddp.png").replace('\\', '/') + "); background-position: center left; }")
         self.finalize_panel_generate_button_background_ddp.setShown(False)
 
         self.finalize_panel_generate_options = QtGui.QLabel(parent=self.finalize_panel)
         self.finalize_panel_generate_options.setGeometry(240, 14, 250, 60)
-        self.finalize_panel_generate_options.setStyleSheet("QLabel { background-image: url(./graphics/finalize_panel_options_background.png); background-position: center left; }")
+        self.finalize_panel_generate_options.setStyleSheet("QLabel { background-image: url(" + os.path.join(path_graphics, "finalize_panel_options_background.png").replace('\\', '/') + "); background-position: center left; }")
 
         class finalize_panel_generate_options_toggle(QtGui.QLabel):
             def enterEvent(widget, event):
                 if self.finalize_panel.x() == self.main_panel.width() - 260:
-                    self.finalize_panel_generate_options_toggle.setStyleSheet("QLabel { background-image: url(./graphics/finalize_panel_background_button_toggle_left_over.png); background-position: center left; }")
+                    self.finalize_panel_generate_options_toggle.setStyleSheet("QLabel { background-image: url(" + os.path.join(path_graphics, "finalize_panel_background_button_toggle_left_over.png").replace('\\', '/') + "); background-position: center left; }")
                 else:
-                    self.finalize_panel_generate_options_toggle.setStyleSheet("QLabel { background-image: url(./graphics/finalize_panel_background_button_toggle_right_over.png); background-position: center left; }")
+                    self.finalize_panel_generate_options_toggle.setStyleSheet("QLabel { background-image: url(" + os.path.join(path_graphics, "finalize_panel_background_button_toggle_right_over.png").replace('\\', '/') + "); background-position: center left; }")
             def leaveEvent(widget, event):
                 if self.finalize_panel.x() == self.main_panel.width() - 260:
-                    self.finalize_panel_generate_options_toggle.setStyleSheet("QLabel { background-image: url(./graphics/finalize_panel_background_button_toggle_left.png); background-position: center left; }")
+                    self.finalize_panel_generate_options_toggle.setStyleSheet("QLabel { background-image: url(" + os.path.join(path_graphics, "finalize_panel_background_button_toggle_left.png").replace('\\', '/') + "); background-position: center left; }")
                 else:
-                    self.finalize_panel_generate_options_toggle.setStyleSheet("QLabel { background-image: url(./graphics/finalize_panel_background_button_toggle_right.png); background-position: center left; }")
+                    self.finalize_panel_generate_options_toggle.setStyleSheet("QLabel { background-image: url(" + os.path.join(path_graphics, "finalize_panel_background_button_toggle_right.png").replace('\\', '/') + "); background-position: center left; }")
             def mousePressEvent(widget, event):
                 if self.finalize_panel.x() == self.main_panel.width() - 260:
                     generate_effect(self, self.finalize_panel_animation, 'geometry', 500, [self.finalize_panel.x(),self.finalize_panel.y(),self.finalize_panel.width(),self.finalize_panel.height()], [self.main_panel.width() - self.finalize_panel.width(),self.finalize_panel.y(),self.finalize_panel.width(),self.finalize_panel.height()])
                 else:
                     generate_effect(self, self.finalize_panel_animation, 'geometry', 500, [self.finalize_panel.x(),self.finalize_panel.y(),self.finalize_panel.width(),self.finalize_panel.height()], [self.main_panel.width() - 260,self.finalize_panel.y(),self.finalize_panel.width(),self.finalize_panel.height()])
-                    self.finalize_panel_generate_options_toggle.setStyleSheet("QLabel { background-image: url(./graphics/finalize_panel_background_button_toggle_right.png); background-position: center left; }")
+                    self.finalize_panel_generate_options_toggle.setStyleSheet("QLabel { background-image: url(" + os.path.join(path_graphics, "finalize_panel_background_button_toggle_right.png").replace('\\', '/') + "); background-position: center left; }")
 
         self.finalize_panel_generate_options_toggle = finalize_panel_generate_options_toggle(parent=self.finalize_panel_generate_options)
         self.finalize_panel_generate_options_toggle.setGeometry(0,0,20,self.finalize_panel_generate_options.height())
-        self.finalize_panel_generate_options_toggle.setStyleSheet("QLabel { background-image: url(./graphics/finalize_panel_background_button_toggle_right.png); background-position: center left; }")
+        self.finalize_panel_generate_options_toggle.setStyleSheet("QLabel { background-image: url(" + os.path.join(path_graphics, "finalize_panel_background_button_toggle_right.png").replace('\\', '/') + "); background-position: center left; }")
 
         self.finalize_panel_generate_button_md5_checkbox = QtGui.QCheckBox('MD5', parent=self.finalize_panel_generate_options)
         self.finalize_panel_generate_button_md5_checkbox.clicked.connect(lambda:set_generate_dvd_kind(self))
@@ -2068,24 +2076,34 @@ class main_window(QtGui.QWidget):
         self.generate_dvd_thread_thread = generate_dvd_thread()
         self.generate_dvd_thread_thread.signal.sig.connect(self.generate_dvd_thread_thread_completed)
 
-        self.setGeometry(0, 0, QtGui.QDesktopWidget().screenGeometry().width(), QtGui.QDesktopWidget().screenGeometry().height())
+        #if not sys.platform.startswith('win'):
+        self.setGeometry(QtGui.QDesktopWidget().screenGeometry().width()*.05, QtGui.QDesktopWidget().screenGeometry().height()*.05, QtGui.QDesktopWidget().screenGeometry().width()*.9, QtGui.QDesktopWidget().screenGeometry().height()*.9)
 
     def generate_dvd_thread_thread_completed(self, data):
         if data.startswith('START'):
-            generate_effect(self, self.lock_finalize_panel_animation, 'geometry', 1000, [self.lock_finalize_panel.x(),self.lock_finalize_panel.y(),self.lock_finalize_panel.width(),self.lock_finalize_panel.height()], [0,-490,1200,1300])
+            generate_effect(self, self.lock_finalize_panel_animation, 'geometry', 1000, [self.lock_finalize_panel.x(),self.lock_finalize_panel.y(),self.lock_finalize_panel.width(),self.lock_finalize_panel.height()], [0,0,self.lock_finalize_panel.width(),self.lock_finalize_panel.height()])
+            self.is_generating = False
             self.finalize_panel_generate_button.setShown(False)
-            self.lock_finalize_panel_progress_bar_label.setShown(True)
-            self.lock_finalize_panel_progress_bar.setShown(True)
-            self.lock_finalize_panel_progress_bar_description.setShown(True)
+
+            generate_effect(self, self.finalize_panel_animation, 'geometry', 500, [self.finalize_panel.x(),self.finalize_panel.y(),self.finalize_panel.width(),self.finalize_panel.height()], [self.main_panel.width(),self.finalize_panel.y(),self.finalize_panel.width(),self.finalize_panel.height()])
+
+            #self.lock_finalize_panel_progress_bar_label.setShown(True)
+            #self.lock_finalize_panel_progress_bar.setShown(True)
+            #self.lock_finalize_panel_progress_bar_description.setShown(True)
             self.lock_finalize_panel_progress_bar.setMaximum(int(data.split(',')[2]))
             self.lock_finalize_panel_progress_bar.setValue(0)
             self.lock_finalize_panel_progress_bar_description.setText("PROCESSING INTRO VIDEO")
         elif data.startswith('FINISH'):
-            generate_effect(self, self.lock_finalize_panel_animation, 'geometry', 1000, [self.lock_finalize_panel.x(),self.lock_finalize_panel.y(),1200,1300], [0,self.main_panel.height(),1200,1300])
+            generate_effect(self, self.lock_finalize_panel_animation, 'geometry', 1000, [self.lock_finalize_panel.x(),self.lock_finalize_panel.y(),self.lock_finalize_panel.width(),self.lock_finalize_panel.height()], [0,self.main_panel.height(),self.lock_finalize_panel.width(),self.lock_finalize_panel.height()])
+            self.is_generating = False
             self.finalize_panel_generate_button.setShown(True)
-            self.lock_finalize_panel_progress_bar_label.setShown(False)
-            self.lock_finalize_panel_progress_bar.setShown(False)
-            self.lock_finalize_panel_progress_bar_description.setShown(False)
+
+            generate_effect(self, self.finalize_panel_animation, 'geometry', 500, [self.finalize_panel.x(),self.finalize_panel.y(),self.finalize_panel.width(),self.finalize_panel.height()], [self.main_panel.width() - 260,self.finalize_panel.y(),self.finalize_panel.width(),self.finalize_panel.height()])
+
+
+            #self.lock_finalize_panel_progress_bar_label.setShown(False)
+            #self.lock_finalize_panel_progress_bar.setShown(False)
+            #self.lock_finalize_panel_progress_bar_description.setShown(False)
         else:
             self.lock_finalize_panel_progress_bar.setValue(int(data.split(',')[1]))
             self.lock_finalize_panel_progress_bar_description.setText(data.split(',')[0])
@@ -2100,7 +2118,11 @@ class main_window(QtGui.QWidget):
         self.content_panel_background.setGeometry(0,0,self.content_panel.width(), self.content_panel.height())
         self.options_panel.setGeometry(self.main_panel.width()-380,120,380,self.main_panel.height()-80)
         self.options_panel_background.setGeometry(0,0,self.options_panel.width(), self.options_panel.height())
-        self.lock_finalize_panel.setGeometry(0,self.main_panel.height(),self.main_panel.width(),self.main_panel.height())#-370
+        if self.is_generating:
+            self.lock_finalize_panel.setGeometry(0,self.main_panel.height(),self.main_panel.width(),self.main_panel.height())#-370
+        else:
+            self.lock_finalize_panel.setGeometry(0,self.main_panel.height(),self.main_panel.width(),self.main_panel.height())#-370
+        self.lock_finalize_panel_background.setGeometry(0,0,self.lock_finalize_panel.width(),self.lock_finalize_panel.height())
         self.options_panel_dvd_panel.setGeometry(10,0,self.options_panel.width()-10,self.options_panel.height())
         self.options_panel_menu_panel.setGeometry(10,0,self.options_panel.width()-10,self.options_panel.height())
         self.options_panel_menu_buttons_label.setGeometry(10,35,self.options_panel_menu_panel.width()-20,15)
@@ -3192,7 +3214,7 @@ def check_name(self, names_list, name):
 def populate_menus_list(self):
     self.nowediting_menus_panel_list.clear()
     for menu in self.list_of_menus:
-        icon = QtGui.QIcon(os.path.join(path_tmp, menu + '.preview.png'))
+        icon = QtGui.QIcon(os.path.join(path_tmp, menu + '.preview.png').replace('\\', '/'))
         self.nowediting_menus_panel_list.addItem(QtGui.QListWidgetItem(icon, menu))
 
 def select_menu_file(self):
@@ -3759,11 +3781,11 @@ app.addLibraryPath(app.applicationDirPath() + "/../PlugIns")
 app.setStyle("plastique")
 app.setApplicationName("Open DVD Producer")
 font_database = QtGui.QFontDatabase()
-font_database.addApplicationFont(os.path.join(path_opendvdproducer, 'resources', 'Ubuntu-RI.ttf'))
-font_database.addApplicationFont(os.path.join(path_opendvdproducer, 'resources', 'Ubuntu-R.ttf'))
-font_database.addApplicationFont(os.path.join(path_opendvdproducer, 'resources', 'Ubuntu-B.ttf'))
-font_database.addApplicationFont(os.path.join(path_opendvdproducer, 'resources', 'Ubuntu-BI.ttf'))
-font_database.addApplicationFont(os.path.join(path_opendvdproducer, 'resources', 'UbuntuMono-R.ttf'))
+font_database.addApplicationFont(os.path.join(path_opendvdproducer,'Ubuntu-RI.ttf'))
+font_database.addApplicationFont(os.path.join(path_opendvdproducer,'Ubuntu-R.ttf'))
+font_database.addApplicationFont(os.path.join(path_opendvdproducer,'Ubuntu-B.ttf'))
+font_database.addApplicationFont(os.path.join(path_opendvdproducer,'Ubuntu-BI.ttf'))
+font_database.addApplicationFont(os.path.join(path_opendvdproducer,'UbuntuMono-R.ttf'))
 app.setFont(QtGui.QFont('Ubuntu', interface_font_size))
 app.setDesktopSettingsAware(False)
 app.main = main_window()
