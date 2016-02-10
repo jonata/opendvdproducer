@@ -3,13 +3,18 @@
 
 import os, sys, subprocess, time, random, codecs, tempfile, shutil, shutil,copy
 
+
 from PySide import QtGui, QtCore
 from PySide.phonon import Phonon
 
 reload(sys)
 sys.setdefaultencoding("utf-8")
 
-if sys.platform == 'win32':
+startupinfo = None
+if sys.platform == 'win32' or os.name == 'nt':
+    startupinfo = subprocess.STARTUPINFO()
+    startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+
     if getattr(sys, 'frozen', False):
         path_opendvdproducer = path_opendvdproducer = getattr(sys, '_MEIPASS', os.getcwd())#sys._MEIPASS
     else:
@@ -106,13 +111,13 @@ class generate_dvd_thread(QtCore.QThread):
     def run(self):
         def generate_ddp(original_file, output_path):
             split_area = 4699979776
-            if os.path.getsize(original_file) < split_area:
-                subprocess.call([iso2ddp_bin, '--inputfile=' + original_file, '--outputpath=' + output_path])
-            else:
-                subprocess.call([iso2ddp_bin, '--inputfile=' + original_file, '--layers=2', '--layer=1' '--outputpath=' + output_path])
-                subprocess.call([iso2ddp_bin, '--inputfile=' + original_file, '--layers=2', '--layer=2' '--outputpath=' + output_path])
+            #if os.path.getsize(original_file) < split_area:
+            #    subprocess.call([iso2ddp_bin, '--inputfile=' + original_file, '--outputpath=' + output_path], startupinfo=startupinfo)
+            #else:
+            #    subprocess.call([iso2ddp_bin, '--inputfile=' + original_file, '--layers=2', '--layer=1' '--outputpath=' + output_path], startupinfo=startupinfo)
+            #    subprocess.call([iso2ddp_bin, '--inputfile=' + original_file, '--layers=2', '--layer=2' '--outputpath=' + output_path], startupinfo=startupinfo)
 
-            output_path = output_path + '_TEST'
+            #output_path = output_path + '_TEST'
 
             sides = 1
             actual_side = 0
@@ -125,12 +130,12 @@ class generate_dvd_thread(QtCore.QThread):
                 layers = ['Layer0', 'Layer1']
 
             if not os.path.isdir(output_path):
-                subprocess.call(['mkdir', output_path])
+                os.mkdir(output_path)
 
             actual_layer = 0
             main_size = os.path.getsize(original_file)/2048
             for layer in layers:
-                subprocess.call(['mkdir', os.path.join(output_path, layer)])
+                os.mkdir(os.path.join(output_path, layer))
 
                 if len(layers) == 1:
                     layer_size = main_size
@@ -274,7 +279,7 @@ class generate_dvd_thread(QtCore.QThread):
                 actual_layer += 1
 
             if len(layers) == 2:
-                subprocess.call([split_bin, '-b=' + str(split_area), os.path.join(path_tmp, 'movie.iso'), os.path.join(path_tmp, 'movie.iso_part')])
+                subprocess.call([split_bin, '-b=' + str(split_area), os.path.join(path_tmp, 'movie.iso'), os.path.join(path_tmp, 'movie.iso_part')], startupinfo=startupinfo)
                 shutil.move(os.path.join(path_tmp, 'movie.iso_part.aa'), os.path.join(output_path, 'Layer0', 'MAIN.DAT'))
                 shutil.move(os.path.join(path_tmp, 'movie.iso_part.ab'), os.path.join(output_path, 'Layer1', 'MAIN.DAT'))
             else:
@@ -373,7 +378,7 @@ class generate_dvd_thread(QtCore.QThread):
                     else:
                         sound_file = os.path.join(path_opendvdproducer, 'silence.flac')
 
-                    sound_length_xml = unicode(subprocess.Popen([ffprobe_bin,'-loglevel', 'error',  '-show_format', '-print_format', 'xml', sound_file], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE).stdout.read(), 'utf-8')
+                    sound_length_xml = unicode(subprocess.Popen([ffprobe_bin,'-loglevel', 'error',  '-show_format', '-print_format', 'xml', sound_file], startupinfo=startupinfo, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE).stdout.read(), 'utf-8')
                     if ' duration="' in sound_length_xml:
                         sound_length = float(sound_length_xml.split(' duration="')[1].split('"')[0])
                     else:
@@ -406,7 +411,7 @@ class generate_dvd_thread(QtCore.QThread):
                     final_command += '-aspect', self.aspect_ratio
                     final_command += '-t', str(sound_length)
                     final_command += os.path.join(path_tmp, menu + '.mpg'),
-                    subprocess.call(final_command)
+                    subprocess.call(final_command, startupinfo=startupinfo)
 
                 else:
                     final_command = [ffmpeg_bin]
@@ -437,7 +442,7 @@ class generate_dvd_thread(QtCore.QThread):
                     if self.selected_menu_twopass and self.selected_menu_encoding == 'VBR':
                         final_command += '-passlogfile', os.path.join(path_tmp, menu + '.log')
                     final_command += os.path.join(path_tmp, menu + '.mpg'),
-                    subprocess.call(final_command)
+                    subprocess.call(final_command, startupinfo=startupinfo)
 
                     if self.selected_menu_twopass and self.selected_menu_encoding == 'VBR':
                         final_command = [ffmpeg_bin]
@@ -466,7 +471,7 @@ class generate_dvd_thread(QtCore.QThread):
                         final_command += '-aspect', self.aspect_ratio
                         final_command += '-passlogfile', os.path.join(path_tmp, menu + '.log')
                         final_command += os.path.join(path_tmp, menu + '.mpg'),
-                        subprocess.call(final_command)
+                        subprocess.call(final_command, startupinfo=startupinfo)
 
                 if self.dict_of_menus[menu][3]:
                     menu_color = '#FFFFFF'
@@ -475,12 +480,12 @@ class generate_dvd_thread(QtCore.QThread):
                     size = self.video_resolutions[0] + '!'
                     size_ws = self.video_resolutions[0].split('x')[0] + 'x' + str(self.height *.75) + '!'
 
-                    subprocess.call([imagemagick_convert_bin, self.dict_of_menus[menu][3], '-resize', size, '+antialias', '-threshold', str(int(self.dict_of_menus[menu][8]*100)) + '%', '-flatten', os.path.join(path_tmp, self.dict_of_menus[menu][3].split('/')[-1].split('\\')[-1][:-4] + '_hl_0.png')])
-                    subprocess.call([imagemagick_convert_bin, os.path.join(path_tmp, self.dict_of_menus[menu][3].split('/')[-1].split('\\')[-1][:-4] + '_hl_0.png'), '-threshold', str(int(self.dict_of_menus[menu][8]*100)) + '%', '-transparent', 'white', '-channel', 'RGBA', '-fill', menu_color + str('%02x' % int(self.dict_of_menus[menu][7]*255)), '-opaque', 'black', os.path.join(path_tmp, self.dict_of_menus[menu][3].split('/')[-1].split('\\')[-1][:-4] + '_hl_0.png')])
+                    subprocess.call([imagemagick_convert_bin, self.dict_of_menus[menu][3], '-resize', size, '+antialias', '-threshold', str(int(self.dict_of_menus[menu][8]*100)) + '%', '-flatten', os.path.join(path_tmp, self.dict_of_menus[menu][3].split('/')[-1].split('\\')[-1][:-4] + '_hl_0.png')], startupinfo=startupinfo)
+                    subprocess.call([imagemagick_convert_bin, os.path.join(path_tmp, self.dict_of_menus[menu][3].split('/')[-1].split('\\')[-1][:-4] + '_hl_0.png'), '-threshold', str(int(self.dict_of_menus[menu][8]*100)) + '%', '-transparent', 'white', '-channel', 'RGBA', '-fill', menu_color + str('%02x' % int(self.dict_of_menus[menu][7]*255)), '-opaque', 'black', os.path.join(path_tmp, self.dict_of_menus[menu][3].split('/')[-1].split('\\')[-1][:-4] + '_hl_0.png')], startupinfo=startupinfo)
 
-                    subprocess.call([imagemagick_convert_bin, self.dict_of_menus[menu][3], '-resize', size_ws, '+antialias', '-threshold', str(int(self.dict_of_menus[menu][8]*100)) + '%', '-flatten', os.path.join(path_tmp, self.dict_of_menus[menu][3].split('/')[-1].split('\\')[-1][:-4] + '_hl_1.png')])
-                    subprocess.call([imagemagick_convert_bin, os.path.join(path_tmp, self.dict_of_menus[menu][3].split('/')[-1].split('\\')[-1][:-4] + '_hl_1.png'), '-resize', size_ws, '-matte', '-bordercolor', 'none', '-border', '0x' + str( self.height * .125 ), os.path.join(path_tmp, self.dict_of_menus[menu][3].split('/')[-1].split('\\')[-1][:-4] + '_hl_1.png')])
-                    subprocess.call([imagemagick_convert_bin, os.path.join(path_tmp, self.dict_of_menus[menu][3].split('/')[-1].split('\\')[-1][:-4] + '_hl_1.png'), '-threshold', str(int(self.dict_of_menus[menu][8]*100)) + '%', '-transparent', 'white', '-channel', 'RGBA', '-fill', menu_color + str('%02x' % int(self.dict_of_menus[menu][7]*255)), '-opaque', 'black', os.path.join(path_tmp, self.dict_of_menus[menu][3].split('/')[-1].split('\\')[-1][:-4] + '_hl_1.png')])
+                    subprocess.call([imagemagick_convert_bin, self.dict_of_menus[menu][3], '-resize', size_ws, '+antialias', '-threshold', str(int(self.dict_of_menus[menu][8]*100)) + '%', '-flatten', os.path.join(path_tmp, self.dict_of_menus[menu][3].split('/')[-1].split('\\')[-1][:-4] + '_hl_1.png')], startupinfo=startupinfo)
+                    subprocess.call([imagemagick_convert_bin, os.path.join(path_tmp, self.dict_of_menus[menu][3].split('/')[-1].split('\\')[-1][:-4] + '_hl_1.png'), '-resize', size_ws, '-matte', '-bordercolor', 'none', '-border', '0x' + str( self.height * .125 ), os.path.join(path_tmp, self.dict_of_menus[menu][3].split('/')[-1].split('\\')[-1][:-4] + '_hl_1.png')], startupinfo=startupinfo)
+                    subprocess.call([imagemagick_convert_bin, os.path.join(path_tmp, self.dict_of_menus[menu][3].split('/')[-1].split('\\')[-1][:-4] + '_hl_1.png'), '-threshold', str(int(self.dict_of_menus[menu][8]*100)) + '%', '-transparent', 'white', '-channel', 'RGBA', '-fill', menu_color + str('%02x' % int(self.dict_of_menus[menu][7]*255)), '-opaque', 'black', os.path.join(path_tmp, self.dict_of_menus[menu][3].split('/')[-1].split('\\')[-1][:-4] + '_hl_1.png')], startupinfo=startupinfo)
 
                     final_spumux_xml_0 += '<subpictures><stream><spu force="yes" start="00:00:00.00" highlight="' + os.path.join(path_tmp, self.dict_of_menus[menu][3].split('/')[-1].split('\\')[-1][:-4] + '_hl_0.png') + '">'
                     final_spumux_xml_1 += '<subpictures><stream><spu force="yes" start="00:00:00.00" highlight="' + os.path.join(path_tmp, self.dict_of_menus[menu][3].split('/')[-1].split('\\')[-1][:-4] + '_hl_1.png') + '">'
@@ -568,11 +573,11 @@ class generate_dvd_thread(QtCore.QThread):
                     menu_mpg_final_file = open(os.path.join(path_tmp, menu + '_final.mpg'), 'w')
 
                     if self.aspect_ratio == '16:9':
-                        s0 = subprocess.Popen([spumux_bin, '-s', '0', os.path.join(path_tmp, self.dict_of_menus[menu][3].split('/')[-1].split('\\')[-1][:-4] + '_0.xml')],  stdin=menu_mpg_file, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                        subprocess.call([spumux_bin, '-s', '1', os.path.join(path_tmp, self.dict_of_menus[menu][3].split('/')[-1].split('\\')[-1][:-4] + '_1.xml')],  stdin=s0.stdout, stdout=menu_mpg_final_file, stderr=subprocess.PIPE)
+                        s0 = subprocess.Popen([spumux_bin, '-s', '0', os.path.join(path_tmp, self.dict_of_menus[menu][3].split('/')[-1].split('\\')[-1][:-4] + '_0.xml')], startupinfo=startupinfo, stdin=menu_mpg_file, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                        subprocess.call([spumux_bin, '-s', '1', os.path.join(path_tmp, self.dict_of_menus[menu][3].split('/')[-1].split('\\')[-1][:-4] + '_1.xml')], startupinfo=startupinfo, stdin=s0.stdout, stdout=menu_mpg_final_file, stderr=subprocess.PIPE)
                         s0.stdout.close()
                     else:
-                        subprocess.call([spumux_bin, os.path.join(path_tmp, self.dict_of_menus[menu][3].split('/')[-1].split('\\')[-1][:-4] + '_0.xml')],  stdin=menu_mpg_file, stdout=menu_mpg_final_file, stderr=subprocess.PIPE)
+                        subprocess.call([spumux_bin, os.path.join(path_tmp, self.dict_of_menus[menu][3].split('/')[-1].split('\\')[-1][:-4] + '_0.xml')], startupinfo=startupinfo, stdin=menu_mpg_file, stdout=menu_mpg_final_file, stderr=subprocess.PIPE)
                     menu_mpg_final_file.close()
 
                 else:
@@ -624,7 +629,7 @@ class generate_dvd_thread(QtCore.QThread):
                 if self.selected_video_twopass and self.selected_video_encoding == 'VBR':
                     final_command += '-passlogfile', os.path.join(path_tmp, video + '.log')
                 final_command += os.path.join(path_tmp, video + '.mpg'),
-                subprocess.call(final_command)
+                subprocess.call(final_command, startupinfo=startupinfo)
 
                 if self.selected_video_twopass and self.selected_video_encoding == 'VBR':
                     final_command = [ffmpeg_bin]
@@ -655,7 +660,7 @@ class generate_dvd_thread(QtCore.QThread):
                     final_command += '-aspect', self.aspect_ratio
                     final_command += '-passlogfile', os.path.join(path_tmp, video + '.log')
                     final_command += os.path.join(path_tmp, video + '.mpg'),
-                    subprocess.call(final_command)
+                    subprocess.call(final_command, startupinfo=startupinfo)
 
                 video_path = os.path.join(path_tmp, video + '.mpg')
             else:
@@ -704,7 +709,7 @@ class generate_dvd_thread(QtCore.QThread):
                 temp_dict_of_chapters = self.dict_of_videos[video][2]
 
                 if len(temp_list_of_chapters)%2 == 0:
-                    length_xml = unicode(subprocess.Popen([ffprobe_bin, '-loglevel', 'error',  '-show_format', '-print_format', 'xml', self.dict_of_videos[video][0]], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE).stdout.read(), 'utf-8')
+                    length_xml = unicode(subprocess.Popen([ffprobe_bin, '-loglevel', 'error',  '-show_format', '-print_format', 'xml', self.dict_of_videos[video][0]], startupinfo=startupinfo, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE).stdout.read(), 'utf-8')
                     length = convert_to_timecode(length_xml.split(' duration="')[1].split('"')[0], '1/1')
                     temp_dict_of_chapters['end'] = length
                     temp_list_of_chapters.append('end')
@@ -727,16 +732,16 @@ class generate_dvd_thread(QtCore.QThread):
 
         self.signal.sig.emit('PROCESSING DVD FOLDERS,' + str(video_count + 2))
 
-        subprocess.call([dvdauthor_bin, '-x', os.path.join(path_tmp, 'dvd.xml')])
+        subprocess.call([dvdauthor_bin, '-x', os.path.join(path_tmp, 'dvd.xml')], startupinfo=startupinfo)
 
         self.signal.sig.emit('PROCESSING DVD ISO,' + str(video_count + 3))
 
-        subprocess.call([mkisofs_bin, '-v', '-dvd-video', '-udf', '-V', self.project_name[:32], '-o',  os.path.join(path_tmp, 'movie.iso'),  os.path.join(path_tmp, 'dvd')])
+        subprocess.call([mkisofs_bin, '-v', '-dvd-video', '-udf', '-V', self.project_name[:32], '-o',  os.path.join(path_tmp, 'movie.iso'),  os.path.join(path_tmp, 'dvd')], startupinfo=startupinfo)
         if os.path.isfile(os.path.join(path_tmp, 'movie.iso')):
             if self.generate_md5:
                 self.signal.sig.emit('PROCESSING MD5,' + str(video_count + 4))
 
-                md5 = subprocess.Popen([md5_bin, os.path.join(path_tmp, 'movie.iso')], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE).stdout.read()
+                md5 = subprocess.Popen([md5_bin, os.path.join(path_tmp, 'movie.iso')], startupinfo=startupinfo, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE).stdout.read()
 
                 open(self.actual_project_file.replace(self.actual_project_file.split('/')[-1].split('\\')[-1], '') + self.project_name + '.md5', 'w').write(md5)
 
@@ -2617,7 +2622,7 @@ def read_project_file(self):
                     length = float(video_item.split(' length="')[1].split('"')[0])
                 else:
                     if os.path.isfile(video_path):
-                        length_xml = unicode(subprocess.Popen([ffprobe_bin,'-loglevel', 'error',  '-show_format', '-print_format', 'xml', video_path], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE).stdout.read(), 'utf-8')
+                        length_xml = unicode(subprocess.Popen([ffprobe_bin,'-loglevel', 'error',  '-show_format', '-print_format', 'xml', video_path], startupinfo=startupinfo, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE).stdout.read(), 'utf-8')
                         length = float(length_xml.split(' duration="')[1].split('"')[0])
                     else:
                         length = 60.0
@@ -3110,7 +3115,7 @@ def choose_color(self):
 
 def generate_preview_image(self, image_item, image_dict):
     if image_dict[image_item][0].split('.')[-1] in ['mov', 'm4v', 'mpg', 'm2v', 'mp4']:
-        subprocess.call([ffmpeg_bin, '-loglevel', 'error', '-y', '-ss', '00:03.00', '-i', get_preview_file(self, image_dict[image_item][0]), '-frames:v', '1', os.path.join(path_tmp, image_item + '.preview_.png')])
+        subprocess.call([ffmpeg_bin, '-loglevel', 'error', '-y', '-ss', '00:03.00', '-i', get_preview_file(self, image_dict[image_item][0]), '-frames:v', '1', os.path.join(path_tmp, image_item + '.preview_.png')], startupinfo=startupinfo)
         image_path = os.path.join(path_tmp, image_item + '.preview_.png')
     else:
         image_path = get_preview_file(self, image_dict[image_item][0])
@@ -3119,7 +3124,7 @@ def generate_preview_image(self, image_item, image_dict):
         size = '720x405!'
     elif self.selected_aspect_ratio == 1:
         size = '640x480!'
-    subprocess.call([imagemagick_convert_bin, get_preview_file(self, image_path), '-resize', size, os.path.join(path_tmp, image_item + '.preview.png')])
+    subprocess.call([imagemagick_convert_bin, get_preview_file(self, image_path), '-resize', size, os.path.join(path_tmp, image_item + '.preview.png')], startupinfo=startupinfo)
 
 def menu_selected(self):
     if self.nowediting_menus_panel_list.currentItem():
@@ -3175,7 +3180,7 @@ def add_menu(self):
             if image_path.endswith('.jpg') or image_path.endswith('.png') or image_path.endswith('.jpeg'):
                 length = 60.0
             else:
-                length_xml = unicode(subprocess.Popen([ffprobe_bin, '-loglevel', 'error',  '-show_format', '-print_format', 'xml', image_path], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE).stdout.read(), 'utf-8')
+                length_xml = unicode(subprocess.Popen([ffprobe_bin, '-loglevel', 'error',  '-show_format', '-print_format', 'xml', image_path], startupinfo=startupinfo, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE).stdout.read(), 'utf-8')
                 length = float(length_xml.split(' duration="')[1].split('"')[0])
 
             self.list_of_menus.append(menu_name)
@@ -3252,8 +3257,8 @@ def preview_overlay(self):
             menu_color = '#FFFFFF'
             if self.dict_of_menus[menu][4]:
                 menu_color = self.dict_of_menus[menu][4]
-            subprocess.call([imagemagick_convert_bin, get_preview_file(self, self.dict_of_menus[menu][3]), '-resize', size, '+antialias', '-threshold', str(int(self.dict_of_menus[menu][8]*100)) + '%', '-flatten', os.path.join(path_tmp, self.dict_of_menus[menu][3].split('/')[-1].split('\\')[-1][:-4] + '_hl.preview.png')])
-            subprocess.call([imagemagick_convert_bin, os.path.join(path_tmp, self.dict_of_menus[menu][3].split('/')[-1].split('\\')[-1][:-4] + '_hl.preview.png'), '-threshold', str(int(self.dict_of_menus[menu][8]*100)) + '%', '-transparent', 'white', '-channel', 'RGBA', '-fill', menu_color + str('%02x' % int(self.dict_of_menus[menu][7]*255)), '-opaque', 'black', os.path.join(path_tmp, self.dict_of_menus[menu][3].split('/')[-1].split('\\')[-1][:-4] + '_hl.preview.png')])
+            subprocess.call([imagemagick_convert_bin, get_preview_file(self, self.dict_of_menus[menu][3]), '-resize', size, '+antialias', '-threshold', str(int(self.dict_of_menus[menu][8]*100)) + '%', '-flatten', os.path.join(path_tmp, self.dict_of_menus[menu][3].split('/')[-1].split('\\')[-1][:-4] + '_hl.preview.png')], startupinfo=startupinfo)
+            subprocess.call([imagemagick_convert_bin, os.path.join(path_tmp, self.dict_of_menus[menu][3].split('/')[-1].split('\\')[-1][:-4] + '_hl.preview.png'), '-threshold', str(int(self.dict_of_menus[menu][8]*100)) + '%', '-transparent', 'white', '-channel', 'RGBA', '-fill', menu_color + str('%02x' % int(self.dict_of_menus[menu][7]*255)), '-opaque', 'black', os.path.join(path_tmp, self.dict_of_menus[menu][3].split('/')[-1].split('\\')[-1][:-4] + '_hl.preview.png')], startupinfo=startupinfo)
 
     update_changes(self)
 
@@ -3465,7 +3470,7 @@ def add_video(self):
 
             chapters_list, chapters_dict = get_video_chapters(self, video_path)
 
-            length_xml = unicode(subprocess.Popen([ffprobe_bin, '-loglevel', 'error', '-show_format', '-print_format', 'xml', video_path], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE).stdout.read(), 'utf-8')
+            length_xml = unicode(subprocess.Popen([ffprobe_bin, '-loglevel', 'error', '-show_format', '-print_format', 'xml', video_path], startupinfo=startupinfo, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE).stdout.read(), 'utf-8')
             length = float(length_xml.split(' duration="')[1].split('"')[0])
 
             self.dict_of_videos[video_name] =   [   video_path,                   # [0] Caminho do video
@@ -3626,7 +3631,7 @@ def get_video_chapters(self, filepath):
                 chapters_list.append(name)
                 chapters_dict[name] = mark
     else:
-        chapters_xml = unicode(subprocess.Popen([ffprobe_bin, '-loglevel', 'error', '-show_chapters', '-print_format', 'xml', filepath], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE).stdout.read(), 'utf-8')
+        chapters_xml = unicode(subprocess.Popen([ffprobe_bin, '-loglevel', 'error', '-show_chapters', '-print_format', 'xml', filepath], startupinfo=startupinfo, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE).stdout.read(), 'utf-8')
         for chapter_line in chapters_xml.split('<chapter '):
             if '</chapter>' in chapter_line:
                 mark = convert_to_timecode(chapter_line.split('start="')[1].split('"')[0], chapter_line.split('time_base="')[1].split('"')[0])

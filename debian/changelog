@@ -1,5 +1,8 @@
-opendvdproducer (15.11) wily; urgency=low
+opendvdproducer (16.02) wily; urgency=low
 
-  * First release
+  * Fixed issues on Windows version
+  * Window can be maximized
+  * Audio codec is no longer the buggy PCM
+  * General bug fixes
 
- -- Jonatã Bolzan Loss <jonata@jonata.org>  Tue, 01 Nov 2015 22:28:33 -0200
+ -- Jonatã Bolzan Loss <jonata@jonata.org>  Tue, 10 Feb 2016 20:55:33 -0200
