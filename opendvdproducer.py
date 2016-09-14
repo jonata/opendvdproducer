@@ -20,7 +20,7 @@ if sys.platform == 'win32' or os.name == 'nt':
     else:
         path_opendvdproducer = os.path.dirname(os.path.abspath(__file__))
 else:
-    path_opendvdproducer = os.path.dirname(sys.argv[0])
+    path_opendvdproducer = os.path.realpath(os.path.dirname(__file__))
 
 
 #os.path.realpath(__file__)#os.path.abspath(os.path.dirname(sys.argv[0]))
@@ -376,7 +376,7 @@ class generate_dvd_thread(QtCore.QThread):
                     if self.dict_of_menus[menu][5] and os.path.isfile(self.dict_of_menus[menu][5]):
                         sound_file = self.dict_of_menus[menu][5]
                     else:
-                        sound_file = os.path.join(path_opendvdproducer, 'silence.flac')
+                        sound_file = os.path.join(path_opendvdproducer, 'resources', 'silence.flac')
 
                     sound_length_xml = unicode(subprocess.Popen([ffprobe_bin,'-loglevel', 'error',  '-show_format', '-print_format', 'xml', sound_file], startupinfo=startupinfo, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE).stdout.read(), 'utf-8')
                     if ' duration="' in sound_length_xml:
