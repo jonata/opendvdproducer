@@ -2445,6 +2445,8 @@ def save_project_file(self):
         self.actual_project_file = QtGui.QFileDialog.getSaveFileName(self, 'Select a filename to save', path_home, 'Open DVD Producer files (*.odvdp)')[0]
 
     if self.actual_project_file:
+        if not self.actual_project_file.endswith('.odvdp'):
+            self.actual_project_file = self.actual_project_file + '.odvdp'
         codecs.open(os.path.join(self.actual_project_file), 'w', 'utf-8').write(write_project_file(self))
 
     update_changes(self)
