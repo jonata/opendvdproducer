@@ -2447,6 +2447,7 @@ def save_project_file(self):
     if self.actual_project_file:
         if not self.actual_project_file.endswith('.odvdp'):
             self.actual_project_file = self.actual_project_file + '.odvdp'
+            # Try to fix
         codecs.open(os.path.join(self.actual_project_file), 'w', 'utf-8').write(write_project_file(self))
 
     update_changes(self)
