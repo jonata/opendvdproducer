@@ -27,10 +27,11 @@ else:
 
 path_graphics = os.path.join(path_opendvdproducer, 'graphics')
 path_home = os.path.expanduser("~")
-
 path_tmp = os.path.join(tempfile.gettempdir(), 'opendvdproducer-' + str(random.randint(1000,9999)))
+path_opendvdproducer_resources = os.path.join(path_opendvdproducer, 'resources')
 
 if sys.platform == 'darwin':
+    path_opendvdproducer_resources = path_opendvdproducer
     iso2ddp_bin = os.path.join(path_opendvdproducer, 'iso2ddp_mac')
     imagemagick_convert_bin = os.path.join(path_opendvdproducer, 'convert')
     interface_font_size = 12
@@ -43,6 +44,7 @@ if sys.platform == 'darwin':
     split_bin = '/usr/bin/split'
 
 elif sys.platform == 'win32':
+    path_opendvdproducer_resources = path_opendvdproducer
     iso2ddp_bin = os.path.join(path_opendvdproducer, 'iso2ddp.exe')
     imagemagick_convert_bin = os.path.join(path_opendvdproducer, 'convert.exe')
     ffprobe_bin = os.path.join(path_opendvdproducer, 'ffprobe.exe')
@@ -376,7 +378,7 @@ class generate_dvd_thread(QtCore.QThread):
                     if self.dict_of_menus[menu][5] and os.path.isfile(self.dict_of_menus[menu][5]):
                         sound_file = self.dict_of_menus[menu][5]
                     else:
-                        sound_file = os.path.join(path_opendvdproducer, 'resources', 'silence.flac')
+                        sound_file = os.path.join(path_opendvdproducer_resources,'silence.flac')
 
                     sound_length_xml = unicode(subprocess.Popen([ffprobe_bin,'-loglevel', 'error',  '-show_format', '-print_format', 'xml', sound_file], startupinfo=startupinfo, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE).stdout.read(), 'utf-8')
                     if ' duration="' in sound_length_xml:
@@ -602,12 +604,20 @@ class generate_dvd_thread(QtCore.QThread):
                 final_command = [ffmpeg_bin]
                 final_command += '-y',
                 final_command += '-i', self.dict_of_videos[video][0]
+                final_length = self.dict_of_videos[video][5]
+                if self.dict_of_videos[video][6]:
+                    final_command += '-ss', str(self.dict_of_videos[video][6])
+                    final_length -= self.dict_of_videos[video][6]
+                if self.dict_of_videos[video][7]:
+                    final_length -= (self.dict_of_videos[video][5] - self.dict_of_videos[video][7])
+                if self.dict_of_videos[video][6] or self.dict_of_videos[video][7]:
+                    final_command += '-t', str(final_length)
                 if self.selected_video_twopass and self.selected_video_encoding == 'VBR':
                     final_command += '-pass', '1'
                 final_command += '-c:v', 'mpeg2video'
                 final_command += '-c:a', self.audio_codec
                 final_command += '-f', 'dvd'
-                final_command += '-s', self.video_resolutions[self.dict_of_videos[video][7]]
+                final_command += '-s', self.video_resolutions[self.dict_of_videos[video][9]]
                 final_command += '-r', self.framerate
                 final_command += '-pix_fmt', 'yuv420p'
                 final_command += '-g', str(self.selected_gop_size)
@@ -635,11 +645,19 @@ class generate_dvd_thread(QtCore.QThread):
                     final_command = [ffmpeg_bin]
                     final_command += '-y',
                     final_command += '-i', self.dict_of_videos[video][0]
+                    final_length = self.dict_of_videos[video][5]
+                    if self.dict_of_videos[video][6]:
+                        final_command += '-ss', str(self.dict_of_videos[video][6])
+                        final_length -= self.dict_of_videos[video][6]
+                    if self.dict_of_videos[video][7]:
+                        final_length -= (self.dict_of_videos[video][5] - self.dict_of_videos[video][7])
+                    if self.dict_of_videos[video][6] or self.dict_of_videos[video][7]:
+                        final_command += '-t', str(final_length)
                     final_command += '-pass', '2'
                     final_command += '-c:v', 'mpeg2video'
                     final_command += '-c:a', self.audio_codec
                     final_command += '-f', 'dvd'
-                    final_command += '-s', self.video_resolutions[self.dict_of_videos[video][7]]
+                    final_command += '-s', self.video_resolutions[self.dict_of_videos[video][9]]
                     final_command += '-r', self.framerate
                     final_command += '-pix_fmt', 'yuv420p'
                     final_command += '-g', str(self.selected_gop_size)
@@ -676,8 +694,8 @@ class generate_dvd_thread(QtCore.QThread):
                 final_dvd_author_xml += ' />'
                 if self.has_menus:
                     final_dvd_author_xml += '<post>'
-                    if self.dict_of_videos[video][6]:
-                        jump_to = self.dict_of_videos[video][6]
+                    if self.dict_of_videos[video][8]:
+                        jump_to = self.dict_of_videos[video][8]
                         if jump_to in self.list_of_menus:
                             final_dvd_author_xml += 'call menu ' + str(self.list_of_menus.index(jump_to) + 1) + ';'
                         elif not ' > ' in jump_to and jump_to in list_of_used_videos:
@@ -1100,7 +1118,13 @@ class main_window(QtGui.QWidget):
                         for menu in self.list_of_menus:
                             estimated_size += float(((self.selected_menu_bitrate + int(self.selected_audio_datarate.split(' ')[0]))*.00001) * self.dict_of_menus[menu][9])
                     for video in self.list_of_videos:
-                        estimated_size += float(((self.selected_video_bitrate + int(self.selected_audio_datarate.split(' ')[0]))*.00001) * self.dict_of_videos[video][5])
+                        final_length = self.dict_of_videos[video][5]
+                        if self.dict_of_videos[video][6]:
+                            final_length -= self.dict_of_videos[video][6]
+                        if self.dict_of_videos[video][7]:
+                            final_length -= (self.dict_of_videos[video][5] - self.dict_of_videos[video][7])
+                        estimated_size += float(((self.selected_video_bitrate + int(self.selected_audio_datarate.split(' ')[0]))*.00001) * final_length)
+                        #estimated_size += float(((self.selected_video_bitrate + int(self.selected_audio_datarate.split(' ')[0]))*.00001) * self.dict_of_videos[video][5])
 
                 painter = QtGui.QPainter(widget)
                 painter.setRenderHint(QtGui.QPainter.Antialiasing)
@@ -1655,14 +1679,43 @@ class main_window(QtGui.QWidget):
         self.videos_player_panel_animation.setEasingCurve(QtCore.QEasingCurve.OutCirc)
 
         class videos_player_timeline(QtGui.QWidget):
+            is_editing_trim_start = False
+            is_editing_trim_end = False
             def paintEvent(widget, paintEvent):
                 painter = QtGui.QPainter(widget)
+
                 if self.selected_video:
                     painter.setRenderHint(QtGui.QPainter.Antialiasing)
+                    pixmap_seek = QtGui.QPixmap(os.path.join(path_graphics, 'videos_player_timeline_seek.png'))
+                    pixmap_start = QtGui.QPixmap(os.path.join(path_graphics, 'videos_player_timeline_start.png'))
+                    pixmap_end = QtGui.QPixmap(os.path.join(path_graphics, 'videos_player_timeline_end.png'))
+
                     rectangle = QtCore.QRectF(0, 0, widget.width(),widget.height())
                     pixmap = QtGui.QPixmap(os.path.join(path_graphics, 'videos_player_timeline_background.png'))
                     painter.fillRect(rectangle,pixmap)
                     if self.nowediting == 'videos':
+                        if self.dict_of_videos[self.selected_video][6]:
+                            painter.setBrush(QtGui.QColor.fromRgb(0,0,0,a=100))
+                            painter.setPen(QtGui.QPen(QtCore.Qt.NoPen))
+                            rectangle = QtCore.QRectF(0, 2, self.dict_of_videos[self.selected_video][6] / ((self.dict_of_videos[self.selected_video][5])/widget.width()),widget.height()-2)
+                            painter.drawRect(rectangle)
+                            painter.drawPixmap((self.dict_of_videos[self.selected_video][6] / ((self.dict_of_videos[self.selected_video][5])/widget.width()))-15,2,pixmap_start)
+                            if self.videos_player_timeline.is_editing_trim_start:
+                                painter.setPen(QtGui.QColor.fromRgb(255,255,255,a=100))
+                                painter.setFont(QtGui.QFont("Ubuntu", 8))
+                                rectangle = QtCore.QRectF(0, 20, (self.dict_of_videos[self.selected_video][6] / ((self.dict_of_videos[self.selected_video][5])/widget.width()))-20,widget.height()-20)
+                                painter.drawText(rectangle, QtCore.Qt.AlignVCenter | QtCore.Qt.AlignRight , 'To remove this\ncut mark, drag\noutside the\ntimeline.')
+                        if self.dict_of_videos[self.selected_video][7]:
+                            painter.setBrush(QtGui.QColor.fromRgb(0,0,0,a=100))
+                            painter.setPen(QtGui.QPen(QtCore.Qt.NoPen))
+                            rectangle = QtCore.QRectF(self.dict_of_videos[self.selected_video][7] / ((self.dict_of_videos[self.selected_video][5])/widget.width()), 2, (widget.width() - (self.dict_of_videos[self.selected_video][7] / ((self.dict_of_videos[self.selected_video][5])/widget.width()))),widget.height()-2)
+                            painter.drawRect(rectangle)
+                            painter.drawPixmap((self.dict_of_videos[self.selected_video][7] / ((self.dict_of_videos[self.selected_video][5])/widget.width()))-3,2,pixmap_end)
+                            if self.videos_player_timeline.is_editing_trim_end:
+                                painter.setPen(QtGui.QColor.fromRgb(255,255,255,a=100))
+                                painter.setFont(QtGui.QFont("Ubuntu", 8))
+                                rectangle = QtCore.QRectF((self.dict_of_videos[self.selected_video][7] / ((self.dict_of_videos[self.selected_video][5])/widget.width()))+20, 20, (widget.width() - (self.dict_of_videos[self.selected_video][7] / ((self.dict_of_videos[self.selected_video][5])/widget.width())))-20,widget.height()-20)
+                                painter.drawText(rectangle, QtCore.Qt.AlignVCenter | QtCore.Qt.AlignLeft , 'To remove this\ncut mark, drag\noutside the\ntimeline.')
                         for chapter in self.dict_of_videos[self.selected_video][1]:
                             text_size = painter.fontMetrics().width(chapter)
                             mark = convert_timecode_to_miliseconds(self.dict_of_videos[self.selected_video][2][chapter]) / ((self.dict_of_videos[self.selected_video][5]*1000)/widget.width())
@@ -1682,8 +1735,8 @@ class main_window(QtGui.QWidget):
                             painter.setFont(QtGui.QFont("Ubuntu", 8))
                             rectangle = QtCore.QRectF((mark * 1.0) + 5.0, 30.0, text_size + 10.0,20.0)
                             painter.drawText(rectangle, QtCore.Qt.AlignLeft, chapter)
-                    pixmap = QtGui.QPixmap(os.path.join(path_graphics, 'videos_player_timeline_seek.png'))
-                    painter.drawPixmap((self.preview_video_obj.currentTime() / ((self.dict_of_videos[self.selected_video][5]*1000)/widget.width()))-10,0,pixmap)
+
+                    painter.drawPixmap((self.preview_video_obj.currentTime() / ((self.dict_of_videos[self.selected_video][5]*1000)/widget.width()))-10,0,pixmap_seek)
                 painter.end()
 
             def mousePressEvent(widget, event):
@@ -1697,24 +1750,87 @@ class main_window(QtGui.QWidget):
                         break
                     else:
                         self.selected_video_chapter = None
+
                 if self.selected_video_chapter == None:
+                    if self.dict_of_videos[self.selected_video][6] and event.pos().x() > ((self.dict_of_videos[self.selected_video][6] / ((self.dict_of_videos[self.selected_video][5])/widget.width()))-15) and event.pos().x() < ((self.dict_of_videos[self.selected_video][6] / ((self.dict_of_videos[self.selected_video][5])/widget.width()))+3):
+                        widget.is_editing_trim_start = (self.dict_of_videos[self.selected_video][6] / ((self.dict_of_videos[self.selected_video][5])/widget.width())) - event.pos().x()
+                    elif self.dict_of_videos[self.selected_video][7] and event.pos().x() > ((self.dict_of_videos[self.selected_video][7] / ((self.dict_of_videos[self.selected_video][5])/widget.width()))-3) and event.pos().x() < ((self.dict_of_videos[self.selected_video][7] / ((self.dict_of_videos[self.selected_video][5])/widget.width()))+15):
+                        widget.is_editing_trim_end = event.pos().x() - (self.dict_of_videos[self.selected_video][7] / ((self.dict_of_videos[self.selected_video][5])/widget.width()))
+
+                if (not widget.is_editing_trim_start or not widget.is_editing_trim_end or self.selected_video_chapter == None) and (event.pos().x() > 0 and event.pos().x() < widget.width()):
                     self.preview_video_obj.seek(event.pos().x() * ((self.dict_of_videos[self.selected_video][5]*1000)/widget.width()) )
                 update_timeline(self)
 
             def mouseReleaseEvent(widget, event):
+                widget.is_editing_trim_start = False
+                widget.is_editing_trim_end = False
+                if widget.is_editing_trim_start and (self.dict_of_videos[self.selected_video][6] < 0.0 or self.dict_of_videos[self.selected_video][6] > self.dict_of_videos[self.selected_video][6]):
+                    self.dict_of_videos[self.selected_video][6] = False
+
+                elif widget.is_editing_trim_end and (self.dict_of_videos[self.selected_video][7] < 0.0 or self.dict_of_videos[self.selected_video][7] > self.dict_of_videos[self.selected_video][6]):
+                    self.dict_of_videos[self.selected_video][7] = False
+
                 update_timeline(self)
+
             def mouseMoveEvent(widget, event):
-                self.preview_video_obj.seek(event.pos().x() * ((self.dict_of_videos[self.selected_video][5]*1000)/widget.width()) )
+                if widget.is_editing_trim_start and not self.dict_of_videos[self.selected_video][6] > self.dict_of_videos[self.selected_video][7]:
+                    self.dict_of_videos[self.selected_video][6] = (event.pos().x() + widget.is_editing_trim_start) * ((self.dict_of_videos[self.selected_video][5])/widget.width())
+                    if event.pos().x() > 0 and event.pos().x() < widget.width():
+                        self.preview_video_obj.seek(self.dict_of_videos[self.selected_video][6]*1000)
+
+                elif widget.is_editing_trim_end and not self.dict_of_videos[self.selected_video][7] < self.dict_of_videos[self.selected_video][6]:
+                    self.dict_of_videos[self.selected_video][7] = (event.pos().x() - widget.is_editing_trim_end) * ((self.dict_of_videos[self.selected_video][5])/widget.width())
+                    if event.pos().x() > 0 and event.pos().x() < widget.width():
+                        self.preview_video_obj.seek(self.dict_of_videos[self.selected_video][7]*1000)
+
+                elif event.pos().x() > 0 and event.pos().x() < widget.width():
+                    self.preview_video_obj.seek(event.pos().x() * ((self.dict_of_videos[self.selected_video][5]*1000)/widget.width()))
                 update_timeline(self)
 
         self.videos_player_timeline = videos_player_timeline(parent=self.videos_player_panel)
 
         self.videos_player_controls_panel = QtGui.QWidget(parent=self.videos_player_panel)
-        self.videos_player_controls_panel.setGeometry(160,0,500,50)
+        self.videos_player_controls_panel.setGeometry(100,0,560,50)
 
         self.videos_player_controls_panel_background = QtGui.QLabel(parent=self.videos_player_controls_panel)
         self.videos_player_controls_panel_background.setGeometry(0,0,self.videos_player_controls_panel.width(),self.videos_player_controls_panel.height())
         self.videos_player_controls_panel_background.setPixmap(os.path.join(path_graphics, 'videos_player_controls_panel_background.png'))
+
+        class videos_player_controls_panel_trimstart(QtGui.QWidget):
+            def mousePressEvent(widget, event):
+                video_set_trim_start(self)
+                self.videos_player_controls_panel_trimstart_background.setPixmap(os.path.join(path_graphics, 'videos_player_controls_panel_trimstart_press.png'))
+            def enterEvent(widget, event):
+                self.videos_player_controls_panel_trimstart_background.setPixmap(os.path.join(path_graphics, 'videos_player_controls_panel_trimstart_over.png'))
+            def mouseReleaseEvent(widget, event):
+                self.videos_player_controls_panel_trimstart_background.setPixmap(os.path.join(path_graphics, 'videos_player_controls_panel_trimstart_background.png'))
+            def leaveEvent(widget, event):
+                self.videos_player_controls_panel_trimstart_background.setPixmap(os.path.join(path_graphics, 'videos_player_controls_panel_trimstart_background.png'))
+
+        self.videos_player_controls_panel_trimstart = videos_player_controls_panel_trimstart(parent=self.videos_player_controls_panel)
+        self.videos_player_controls_panel_trimstart.setGeometry(0,10,32,30)
+
+        self.videos_player_controls_panel_trimstart_background = QtGui.QLabel(parent=self.videos_player_controls_panel_trimstart)
+        self.videos_player_controls_panel_trimstart_background.setGeometry(0,0,self.videos_player_controls_panel_trimstart.width(),self.videos_player_controls_panel_trimstart.height())
+        self.videos_player_controls_panel_trimstart_background.setPixmap(os.path.join(path_graphics, 'videos_player_controls_panel_trimstart_background.png'))
+
+        class videos_player_controls_panel_trimend(QtGui.QWidget):
+            def mousePressEvent(widget, event):
+                video_set_trim_end(self)
+                self.videos_player_controls_panel_trimend_background.setPixmap(os.path.join(path_graphics, 'videos_player_controls_panel_trimend_press.png'))
+            def enterEvent(widget, event):
+                self.videos_player_controls_panel_trimend_background.setPixmap(os.path.join(path_graphics, 'videos_player_controls_panel_trimend_over.png'))
+            def mouseReleaseEvent(widget, event):
+                self.videos_player_controls_panel_trimend_background.setPixmap(os.path.join(path_graphics, 'videos_player_controls_panel_trimend_background.png'))
+            def leaveEvent(widget, event):
+                self.videos_player_controls_panel_trimend_background.setPixmap(os.path.join(path_graphics, 'videos_player_controls_panel_trimend_background.png'))
+
+        self.videos_player_controls_panel_trimend = videos_player_controls_panel_trimend(parent=self.videos_player_controls_panel)
+        self.videos_player_controls_panel_trimend.setGeometry(32,10,33,30)
+
+        self.videos_player_controls_panel_trimend_background = QtGui.QLabel(parent=self.videos_player_controls_panel_trimend)
+        self.videos_player_controls_panel_trimend_background.setGeometry(0,0,self.videos_player_controls_panel_trimend.width(),self.videos_player_controls_panel_trimend.height())
+        self.videos_player_controls_panel_trimend_background.setPixmap(os.path.join(path_graphics, 'videos_player_controls_panel_trimend_background.png'))
 
         class videos_player_controls_panel_frameback(QtGui.QWidget):
             def mousePressEvent(widget, event):
@@ -1728,7 +1844,7 @@ class main_window(QtGui.QWidget):
                 self.videos_player_controls_panel_frameback_background.setPixmap(os.path.join(path_graphics, 'videos_player_controls_panel_frameback_background.png'))
 
         self.videos_player_controls_panel_frameback = videos_player_controls_panel_frameback(parent=self.videos_player_controls_panel)
-        self.videos_player_controls_panel_frameback.setGeometry(0,0,73,50)
+        self.videos_player_controls_panel_frameback.setGeometry(60,0,73,50)
 
         self.videos_player_controls_panel_frameback_background = QtGui.QLabel(parent=self.videos_player_controls_panel_frameback)
         self.videos_player_controls_panel_frameback_background.setGeometry(0,0,self.videos_player_controls_panel_frameback.width(),self.videos_player_controls_panel_frameback.height())
@@ -1749,7 +1865,7 @@ class main_window(QtGui.QWidget):
                 self.videos_player_controls_panel_stop_background.setPixmap(os.path.join(path_graphics, 'videos_player_controls_panel_stop_background.png'))
 
         self.videos_player_controls_panel_stop = videos_player_controls_panel_stop(parent=self.videos_player_controls_panel)
-        self.videos_player_controls_panel_stop.setGeometry(72,0,48,50)
+        self.videos_player_controls_panel_stop.setGeometry(132,0,48,50)
 
         self.videos_player_controls_panel_stop_background = QtGui.QLabel(parent=self.videos_player_controls_panel_stop)
         self.videos_player_controls_panel_stop_background.setGeometry(0,0,self.videos_player_controls_panel_stop.width(),self.videos_player_controls_panel_stop.height())
@@ -1769,7 +1885,7 @@ class main_window(QtGui.QWidget):
                     self.videos_player_controls_panel_play_background.setPixmap(os.path.join(path_graphics, 'videos_player_controls_panel_play_background.png'))
 
         self.videos_player_controls_panel_play = videos_player_controls_panel_play(parent=self.videos_player_controls_panel)
-        self.videos_player_controls_panel_play.setGeometry(121,0,48,50)
+        self.videos_player_controls_panel_play.setGeometry(181,0,48,50)
 
         self.videos_player_controls_panel_play_background = QtGui.QLabel(parent=self.videos_player_controls_panel_play)
         self.videos_player_controls_panel_play_background.setGeometry(0,0,self.videos_player_controls_panel_play.width(),self.videos_player_controls_panel_play.height())
@@ -1792,7 +1908,7 @@ class main_window(QtGui.QWidget):
                     self.videos_player_controls_panel_pause_background.setPixmap(os.path.join(path_graphics, 'videos_player_controls_panel_pause_background.png'))
 
         self.videos_player_controls_panel_pause = videos_player_controls_panel_pause(parent=self.videos_player_controls_panel)
-        self.videos_player_controls_panel_pause.setGeometry(169,0,48,50)
+        self.videos_player_controls_panel_pause.setGeometry(229,0,48,50)
 
         self.videos_player_controls_panel_pause_background = QtGui.QLabel(parent=self.videos_player_controls_panel_pause)
         self.videos_player_controls_panel_pause_background.setGeometry(0,0,self.videos_player_controls_panel_pause.width(),self.videos_player_controls_panel_pause.height())
@@ -1810,7 +1926,7 @@ class main_window(QtGui.QWidget):
                 self.videos_player_controls_panel_mark_background.setPixmap(os.path.join(path_graphics, 'videos_player_controls_panel_mark_background.png'))
 
         self.videos_player_controls_panel_mark = videos_player_controls_panel_mark(parent=self.videos_player_controls_panel)
-        self.videos_player_controls_panel_mark.setGeometry(217,0,48,50)
+        self.videos_player_controls_panel_mark.setGeometry(277,0,48,50)
 
         self.videos_player_controls_panel_mark_background = QtGui.QLabel(parent=self.videos_player_controls_panel_mark)
         self.videos_player_controls_panel_mark_background.setGeometry(0,0,self.videos_player_controls_panel_mark.width(),self.videos_player_controls_panel_mark.height())
@@ -1828,14 +1944,14 @@ class main_window(QtGui.QWidget):
                 self.videos_player_controls_panel_frameforward_background.setPixmap(os.path.join(path_graphics, 'videos_player_controls_panel_frameforward_background.png'))
 
         self.videos_player_controls_panel_frameforward = videos_player_controls_panel_frameforward(parent=self.videos_player_controls_panel)
-        self.videos_player_controls_panel_frameforward.setGeometry(265,0,74,50)
+        self.videos_player_controls_panel_frameforward.setGeometry(325,0,74,50)
 
         self.videos_player_controls_panel_frameforward_background = QtGui.QLabel(parent=self.videos_player_controls_panel_frameforward)
         self.videos_player_controls_panel_frameforward_background.setGeometry(0,0,self.videos_player_controls_panel_frameforward.width(),self.videos_player_controls_panel_frameforward.height())
         self.videos_player_controls_panel_frameforward_background.setPixmap(os.path.join(path_graphics, 'videos_player_controls_panel_frameforward_background.png'))
 
         self.videos_player_controls_panel_current_time = QtGui.QLabel(parent=self.videos_player_controls_panel)
-        self.videos_player_controls_panel_current_time.setGeometry(344,10,146,30)
+        self.videos_player_controls_panel_current_time.setGeometry(404,10,146,30)
         self.videos_player_controls_panel_current_time.setAlignment(QtCore.Qt.AlignCenter | QtCore.Qt.AlignVCenter)
         self.videos_player_controls_panel_current_time.setStyleSheet('font-family: "Ubuntu Mono"; font-size:22px; color:#9AC3CF')
 
@@ -2607,6 +2723,8 @@ def read_project_file(self):
                 dict_of_chapters = {}
                 is_intro = False
                 reencode = False
+                start = False
+                end = False
                 post = None
                 resolution = 0
                 if 'is_intro=' in video_item:
@@ -2628,6 +2746,10 @@ def read_project_file(self):
                         length = float(length_xml.split(' duration="')[1].split('"')[0])
                     else:
                         length = 60.0
+                if 'start=' in video_item and check_if_is_float(video_item.split(' start="')[1].split('"')[0]):
+                    start = check_if_is_float(video_item.split(' start="')[1].split('"')[0])
+                if 'end=' in video_item  and check_if_is_float(video_item.split(' end="')[1].split('"')[0]):
+                    end = check_if_is_float(video_item.split(' end="')[1].split('"')[0])
                 if '<chapter' in video_item:
                     for chapter_item in video_item.split('<chapter'):
                         if '</chapter>' in chapter_item:
@@ -2635,7 +2757,7 @@ def read_project_file(self):
                             chapter_time = chapter_item.split(' time="')[1].split('"')[0]
                             list_of_chapters.append(chapter_name)
                             dict_of_chapters[chapter_name] = chapter_time
-                self.dict_of_videos[video_name] = [video_path, list_of_chapters, dict_of_chapters, is_intro, reencode, length, post, resolution]
+                self.dict_of_videos[video_name] = [video_path, list_of_chapters, dict_of_chapters, is_intro, reencode, length, start, end, post, resolution]
                 self.list_of_videos.append(video_name)
 
     self.nowediting_dvd_panel_project_name.setText(self.project_name)
@@ -2684,7 +2806,7 @@ def write_project_file(self):
         if self.dict_of_menus[menu][5]:
             final_project_file += ' sound="' + get_relative_path(self, self.dict_of_menus[menu][5]) + '"'
         final_project_file += ' main_menu="' + str(self.dict_of_menus[menu][6]) + '"'
-        final_project_file += ' transparency="' + str(self.dict_of_menus[menu][7]) + '"'
+        final_project_file += ' transparency="' + str(self.dict_of_menus[menu][9]) + '"'
         final_project_file += ' border="' + str(self.dict_of_menus[menu][8]) + '"'
         final_project_file += ' length="' + str(self.dict_of_menus[menu][9]) + '"'
         final_project_file += '>'
@@ -2698,9 +2820,11 @@ def write_project_file(self):
         final_project_file += ' filepath="' + get_relative_path(self, self.dict_of_videos[video][0]) + '"'
         final_project_file += ' reencode="' + str(self.dict_of_videos[video][4]) + '"'
         final_project_file += ' length="' + str(self.dict_of_videos[video][5]) + '"'
+        final_project_file += ' start="' + str(self.dict_of_videos[video][6]) + '"'
+        final_project_file += ' end="' + str(self.dict_of_videos[video][7]) + '"'
         final_project_file += ' is_intro="' + str(self.dict_of_videos[video][3]) + '"'
-        final_project_file += ' post="' + str(self.dict_of_videos[video][6]) + '"'
-        final_project_file += ' resolution="' + str(self.dict_of_videos[video][7]) + '">'
+        final_project_file += ' post="' + str(self.dict_of_videos[video][8]) + '"'
+        final_project_file += ' resolution="' + str(self.dict_of_videos[video][9]) + '">'
         for chapter in self.dict_of_videos[video][1]:
             final_project_file += '<chapter name="' + str(chapter) + '"'
             final_project_file += ' time="' + self.dict_of_videos[video][2][chapter] + '">'
@@ -2911,15 +3035,15 @@ def update_changes(self):
         if self.nowediting == 'videos' and self.videos_player_panel.y() == self.main_panel.height():
             generate_effect(self, self.videos_player_panel_animation, 'geometry', 500, [self.videos_player_panel.x(),self.videos_player_panel.y(),self.videos_player_panel.width(),self.videos_player_panel.height()], [self.videos_player_panel.x(),self.main_panel.height()-125,self.videos_player_panel.width(),self.videos_player_panel.height()])
         populate_jumpto_list(self)
-        if self.dict_of_videos[self.selected_video][6]:
-            self.options_panel_video_jumpto.setCurrentIndex(self.options_panel_video_jumpto.findText(self.dict_of_videos[self.selected_video][6]))
+        if self.dict_of_videos[self.selected_video][8]:
+            self.options_panel_video_jumpto.setCurrentIndex(self.options_panel_video_jumpto.findText(self.dict_of_videos[self.selected_video][8]))
         else:
             self.options_panel_video_jumpto.setCurrentIndex(self.options_panel_video_jumpto.findText('Main menu'))
 
         self.options_panel_video_intro_video_checkbox.setChecked(self.dict_of_videos[self.selected_video][3])
         self.options_panel_video_reencode_video_checkbox.setChecked(self.dict_of_videos[self.selected_video][4])
         self.options_panel_video_resolution_combo.setEnabled(self.dict_of_videos[self.selected_video][4])
-        self.options_panel_video_resolution_combo.setCurrentIndex(self.dict_of_videos[self.selected_video][7])
+        self.options_panel_video_resolution_combo.setCurrentIndex(self.dict_of_videos[self.selected_video][9])
 
     if ((not self.has_menus) or (self.has_menus and len(self.list_of_menus) > 0)) and len(self.list_of_videos) > 0:
         generate_effect(self, self.finalize_panel_animation, 'geometry', 500, [self.finalize_panel.x(),self.finalize_panel.y(),self.finalize_panel.width(),self.finalize_panel.height()], [self.main_panel.width() - 260,self.finalize_panel.y(),self.finalize_panel.width(),self.finalize_panel.height()])
@@ -2936,7 +3060,12 @@ def update_changes(self):
             for menu in self.list_of_menus:
                 estimated_size += float(((self.selected_menu_bitrate + int(self.selected_audio_datarate.split(' ')[0]))*.001) * self.dict_of_menus[menu][9])
         for video in self.list_of_videos:
-            estimated_size += float(((self.selected_video_bitrate + int(self.selected_audio_datarate.split(' ')[0]))*.001) * self.dict_of_videos[video][5])
+            final_length = self.dict_of_videos[video][5]
+            if self.dict_of_videos[video][6]:
+                final_length -= self.dict_of_videos[video][6]
+            if self.dict_of_videos[video][7]:
+                final_length -= (self.dict_of_videos[video][5] - self.dict_of_videos[video][7])
+            estimated_size += float(((self.selected_video_bitrate + int(self.selected_audio_datarate.split(' ')[0]))*.001) * final_length)
         estimated_proportion = int(estimated_size / 360)
 
     final_text = '<font style="font-size:12px;"><b>ESTIMATED SIZE:</b></font><br><font style="font-size:18px;"><b>'
@@ -3042,6 +3171,13 @@ def change_aspect_ratio(self):
     populate_videos_list(self)
 
     update_changes(self)
+
+def check_if_is_float(value):
+  try:
+    float(value)
+    return float(value)
+  except ValueError:
+    return False
 
 def convert_to_timecode(value, framerate):
     value = value.replace('s', '')
@@ -3475,14 +3611,19 @@ def add_video(self):
             length_xml = unicode(subprocess.Popen([ffprobe_bin, '-loglevel', 'error', '-show_format', '-print_format', 'xml', video_path], startupinfo=startupinfo, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE).stdout.read(), 'utf-8')
             length = float(length_xml.split(' duration="')[1].split('"')[0])
 
-            self.dict_of_videos[video_name] =   [   video_path,                   # [0] Caminho do video
-                                                    chapters_list,                # [1] Lista de capítulos
-                                                    chapters_dict,                # [2] Dict de capítulos
-                                                    False,                        # [3] se é o video de intro
-                                                    True,                         # [4] se é para ser reconvertido
-                                                    length,                       # [5] Duração
-                                                    None,                         # [6] Post
-                                                    0                             # [7] Resolução
+            start = False
+            end = False
+
+            self.dict_of_videos[video_name] =   [   video_path,                   # [0] Video path
+                                                    chapters_list,                # [1] Chapters list
+                                                    chapters_dict,                # [2] Chapters dict
+                                                    False,                        # [3] if it is intro video
+                                                    True,                         # [4] if it is to be converted
+                                                    length,                       # [5] length
+                                                    start,                        # [6] Start
+                                                    end,                          # [7] End
+                                                    None,                         # [8] Post
+                                                    0                             # [9] Resolution
                                                 ]
             self.list_of_videos.append(video_name)
 
@@ -3562,6 +3703,14 @@ def video_add_this_mark_frame(self):
     append_chapter(self, check_name(self, self.dict_of_videos[self.selected_video][1], 'mark'), convert_to_timecode(str(self.preview_video_obj.currentTime()), '1/1000'))
     update_changes(self)
 
+def video_set_trim_start(self):
+    self.dict_of_videos[self.selected_video][6] = self.preview_video_obj.currentTime()/1000.0
+    update_timeline(self)
+
+def video_set_trim_end(self):
+    self.dict_of_videos[self.selected_video][7] = self.preview_video_obj.currentTime()/1000.0
+    update_timeline(self)
+
 def populate_jumpto(self):
     self.options_panel_menu_buttons_jumpto.clear()
     final_list = []
@@ -3590,13 +3739,13 @@ def set_reencode_video(self):
     update_changes(self)
 
 def video_resolution_combo_selected(self):
-    self.dict_of_videos[self.selected_video][7] = self.options_panel_video_resolution_combo.currentIndex()
+    self.dict_of_videos[self.selected_video][9] = self.options_panel_video_resolution_combo.currentIndex()
 
 def video_jumpto_selected(self):
     if self.options_panel_video_jumpto.currentText() == 'Main menu':
-        self.dict_of_videos[self.selected_video][6] = None
+        self.dict_of_videos[self.selected_video][8] = None
     else:
-        self.dict_of_videos[self.selected_video][6] = self.options_panel_video_jumpto.currentText()
+        self.dict_of_videos[self.selected_video][8] = self.options_panel_video_jumpto.currentText()
 
 def populate_jumpto_list(self):
     final_list = ['Main menu']
