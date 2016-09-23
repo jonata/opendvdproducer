@@ -1976,18 +1976,26 @@ class main_window(QtGui.QWidget):
         class menus_properties_panel_background_file_preview(QtGui.QWidget):
             def enterEvent(widget, event):
                 self.menus_properties_panel_background_file_preview_open_button.setShown(True)
+                self.menus_properties_panel_background_file_preview_remove_button.setShown(True)
             def leaveEvent(widget, event):
                 self.menus_properties_panel_background_file_preview_open_button.setShown(False)
+                self.menus_properties_panel_background_file_preview_remove_button.setShown(False)
 
         self.menus_properties_panel_background_file_preview = menus_properties_panel_background_file_preview(parent=self.menus_properties_panel)
 
         self.menus_properties_panel_background_file_preview_background = QtGui.QLabel(parent=self.menus_properties_panel_background_file_preview)
         self.menus_properties_panel_background_file_preview_background.setScaledContents(True)
         self.menus_properties_panel_background_file_preview_foreground = QtGui.QLabel(parent=self.menus_properties_panel_background_file_preview)
+
         self.menus_properties_panel_background_file_preview_open_button = QtGui.QPushButton(QtGui.QPixmap(os.path.join(path_graphics, 'open.png')), '', parent=self.menus_properties_panel_background_file_preview)
         self.menus_properties_panel_background_file_preview_open_button.setGeometry(5,15,30,30)
         self.menus_properties_panel_background_file_preview_open_button.setShown(False)
         self.menus_properties_panel_background_file_preview_open_button.clicked.connect(lambda:select_menu_file(self))
+
+        self.menus_properties_panel_background_file_preview_remove_button = QtGui.QPushButton(QtGui.QPixmap(os.path.join(path_graphics, 'remove.png')), '', parent=self.menus_properties_panel_background_file_preview)
+        self.menus_properties_panel_background_file_preview_remove_button.setGeometry(40,15,30,30)
+        self.menus_properties_panel_background_file_preview_remove_button.setShown(False)
+        self.menus_properties_panel_background_file_preview_remove_button.clicked.connect(lambda:remove_menu_file(self))
 
         self.menus_properties_panel_overlay_file_label = QtGui.QLabel(parent=self.menus_properties_panel)
         self.menus_properties_panel_overlay_file_label.setGeometry(110,30,90,20)
@@ -1996,18 +2004,26 @@ class main_window(QtGui.QWidget):
         class menus_properties_panel_overlay_file_preview(QtGui.QWidget):
             def enterEvent(widget, event):
                 self.menus_properties_panel_overlay_file_preview_open_button.setShown(True)
+                self.menus_properties_panel_overlay_file_preview_remove_button.setShown(True)
             def leaveEvent(widget, event):
                 self.menus_properties_panel_overlay_file_preview_open_button.setShown(False)
+                self.menus_properties_panel_overlay_file_preview_remove_button.setShown(False)
 
         self.menus_properties_panel_overlay_file_preview = menus_properties_panel_overlay_file_preview(parent=self.menus_properties_panel)
 
         self.menus_properties_panel_overlay_file_preview_background = QtGui.QLabel(parent=self.menus_properties_panel_overlay_file_preview)
         self.menus_properties_panel_overlay_file_preview_background.setScaledContents(True)
         self.menus_properties_panel_overlay_file_preview_foreground = QtGui.QLabel(parent=self.menus_properties_panel_overlay_file_preview)
+
         self.menus_properties_panel_overlay_file_preview_open_button = QtGui.QPushButton(QtGui.QPixmap(os.path.join(path_graphics, 'open.png')), '', parent=self.menus_properties_panel_overlay_file_preview)
         self.menus_properties_panel_overlay_file_preview_open_button.setGeometry(5,15,30,30)
         self.menus_properties_panel_overlay_file_preview_open_button.setShown(False)
         self.menus_properties_panel_overlay_file_preview_open_button.clicked.connect(lambda:select_overlay_file(self))
+
+        self.menus_properties_panel_overlay_file_preview_remove_button = QtGui.QPushButton(QtGui.QPixmap(os.path.join(path_graphics, 'remove.png')), '', parent=self.menus_properties_panel_overlay_file_preview)
+        self.menus_properties_panel_overlay_file_preview_remove_button.setGeometry(40,15,30,30)
+        self.menus_properties_panel_overlay_file_preview_remove_button.setShown(False)
+        self.menus_properties_panel_overlay_file_preview_remove_button.clicked.connect(lambda:remove_overlay_file(self))
 
         self.menus_properties_panel_color_label = QtGui.QLabel(parent=self.menus_properties_panel)
         self.menus_properties_panel_color_label.setGeometry(210,30,50,20)
@@ -3369,11 +3385,19 @@ def select_menu_file(self):
     populate_menus_list(self)
     update_changes(self)
 
+def remove_menu_file(self):
+    self.dict_of_menus[self.selected_menu][0] = ''
+    generate_preview_image(self, self.selected_menu, self.dict_of_menus)
+    update_changes(self)
 
 def select_overlay_file(self):
     overlay_image_path = QtGui.QFileDialog.getOpenFileName(self, "Select an image for the overlay", path_home, "Images (*.jpg *.png)")[0]#.toUtf8()
     if not overlay_image_path == '':
         self.dict_of_menus[self.selected_menu][3] = overlay_image_path
+    update_overlay_image_preview(self)
+
+def remove_overlay_file(self):
+    self.dict_of_menus[self.selected_menu][3] = None
     update_overlay_image_preview(self)
 
 def update_overlay_image_preview(self):
