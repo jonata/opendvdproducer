@@ -3061,6 +3061,8 @@ def update_changes(self):
         self.options_panel_video_resolution_combo.setEnabled(self.dict_of_videos[self.selected_video][4])
         self.options_panel_video_resolution_combo.setCurrentIndex(self.dict_of_videos[self.selected_video][9])
 
+        update_timeline(self)
+
     if ((not self.has_menus) or (self.has_menus and len(self.list_of_menus) > 0)) and len(self.list_of_videos) > 0:
         generate_effect(self, self.finalize_panel_animation, 'geometry', 500, [self.finalize_panel.x(),self.finalize_panel.y(),self.finalize_panel.width(),self.finalize_panel.height()], [self.main_panel.width() - 260,self.finalize_panel.y(),self.finalize_panel.width(),self.finalize_panel.height()])
     else:
