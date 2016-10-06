@@ -1,0 +1,17 @@
+name: opendvdproducer
+version: "16.09"
+summary: Open DVD Producer
+description: A modern, open source cross platform software to produce DVD images.
+  Create DVDs with menus and chapters in a simple yet professional way.
+confinement: strict
+
+apps:
+  opendvdproducer:
+    command: desktop-launch opendvdproducer
+    plugs: [home, unity7, network, x11, qt4]
+
+parts:
+  opendvdproducer:
+    plugin: nil
+    stage-packages: [python, python-pyside.qtgui, python-pyside.qtcore, ttf-ubuntu-font-family, ffmpeg, dvdauthor, imagemagick, python-pyside.phonon,  genisoimage]
+    after: [desktop-qt4]

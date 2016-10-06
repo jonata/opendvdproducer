@@ -3,9 +3,10 @@
 
 import os, sys, subprocess, time, random, codecs, tempfile, shutil, shutil,copy
 
+import vlc
 
 from PySide import QtGui, QtCore
-from PySide.phonon import Phonon
+#from PySide.phonon import Phonon
 
 reload(sys)
 sys.setdefaultencoding("utf-8")
@@ -22,6 +23,8 @@ if sys.platform == 'win32' or os.name == 'nt':
 else:
     path_opendvdproducer = os.path.realpath(os.path.dirname(__file__))
 
+
+video_instance = vlc.Instance()
 
 #os.path.realpath(__file__)#os.path.abspath(os.path.dirname(sys.argv[0]))
 
@@ -1091,14 +1094,18 @@ class main_window(QtGui.QWidget):
         self.no_preview_label.setAlignment(QtCore.Qt.AlignCenter)
         self.no_preview_label.setForegroundRole(QtGui.QPalette.Midlight)
 
-        self.preview_video_obj = Phonon.MediaObject(parent=self)
-        self.preview_video_obj.setTickInterval(200)
-        self.preview_video_obj.tick.connect(lambda:update_timeline(self))
-        self.preview_video_widget = Phonon.VideoWidget(parent=self.main_panel)
-        self.preview_video_audio = Phonon.AudioOutput(Phonon.VideoCategory, self)
+        self.preview_video_obj = video_instance.media_player_new()
 
-        Phonon.createPath(self.preview_video_obj, self.preview_video_audio)
-        Phonon.createPath(self.preview_video_obj, self.preview_video_widget)
+        #self.preview_video_obj = Phonon.MediaObject(parent=self)
+        #self.preview_video_obj.setTickInterval(200)
+        #self.preview_video_obj.tick.connect(lambda:update_timeline(self))
+        self.preview_video_widget = QtGui.QLabel(parent=self.main_panel)
+        self.preview_video_obj.set_xwindow(self.preview_video_widget.winId())
+        #self.preview_video_widget = Phonon.VideoWidget(parent=self.main_panel)
+        #self.preview_video_audio = Phonon.AudioOutput(Phonon.VideoCategory, self)
+
+        #Phonon.createPath(self.preview_video_obj, self.preview_video_audio)
+        #Phonon.createPath(self.preview_video_obj, self.preview_video_widget)
 
         self.options_panel = QtGui.QWidget(parent=self.content_panel)
         self.options_panel_animation = QtCore.QPropertyAnimation(self.options_panel, 'geometry')
@@ -1736,7 +1743,8 @@ class main_window(QtGui.QWidget):
                             rectangle = QtCore.QRectF((mark * 1.0) + 5.0, 30.0, text_size + 10.0,20.0)
                             painter.drawText(rectangle, QtCore.Qt.AlignLeft, chapter)
 
-                    painter.drawPixmap((self.preview_video_obj.currentTime() / ((self.dict_of_videos[self.selected_video][5]*1000)/widget.width()))-10,0,pixmap_seek)
+                    #painter.drawPixmap((self.preview_video_obj.currentTime() / ((self.dict_of_videos[self.selected_video][5]*1000)/widget.width()))-10,0,pixmap_seek)
+                    painter.drawPixmap((self.preview_video_obj.get_position() * widget.width())-10,0,pixmap_seek)
                 painter.end()
 
             def mousePressEvent(widget, event):
@@ -1758,7 +1766,10 @@ class main_window(QtGui.QWidget):
                         widget.is_editing_trim_end = event.pos().x() - (self.dict_of_videos[self.selected_video][7] / ((self.dict_of_videos[self.selected_video][5])/widget.width()))
 
                 if (not widget.is_editing_trim_start or not widget.is_editing_trim_end or self.selected_video_chapter == None) and (event.pos().x() > 0 and event.pos().x() < widget.width()):
-                    self.preview_video_obj.seek(event.pos().x() * ((self.dict_of_videos[self.selected_video][5]*1000)/widget.width()) )
+                    ##self.preview_video_obj.seek(event.pos().x() * ((self.dict_of_videos[self.selected_video][5]*1000)/widget.width()) )
+                    #self.preview_video_obj.st_positionk(event.pos().x() * ((self.dict_of_videos[self.selected_video][5]*1000)/widget.width()) )
+                    #self.preview_video_obj.seek(event.pos().x() * ((self.dict_of_videos[self.selected_video][5]*1000)/widget.width()) )
+                    self.preview_video_obj.set_position(float(event.pos().x()) / float(widget.width()))
                 update_timeline(self)
 
             def mouseReleaseEvent(widget, event):
@@ -1776,15 +1787,18 @@ class main_window(QtGui.QWidget):
                 if widget.is_editing_trim_start and not self.dict_of_videos[self.selected_video][6] > self.dict_of_videos[self.selected_video][7]:
                     self.dict_of_videos[self.selected_video][6] = (event.pos().x() + widget.is_editing_trim_start) * ((self.dict_of_videos[self.selected_video][5])/widget.width())
                     if event.pos().x() > 0 and event.pos().x() < widget.width():
-                        self.preview_video_obj.seek(self.dict_of_videos[self.selected_video][6]*1000)
+                        #self.preview_video_obj.seek(self.dict_of_videos[self.selected_video][6]*1000)
+                        self.preview_video_obj.set_position(self.dict_of_videos[self.selected_video][6]/self.dict_of_videos[self.selected_video][5])
 
                 elif widget.is_editing_trim_end and not self.dict_of_videos[self.selected_video][7] < self.dict_of_videos[self.selected_video][6]:
                     self.dict_of_videos[self.selected_video][7] = (event.pos().x() - widget.is_editing_trim_end) * ((self.dict_of_videos[self.selected_video][5])/widget.width())
                     if event.pos().x() > 0 and event.pos().x() < widget.width():
-                        self.preview_video_obj.seek(self.dict_of_videos[self.selected_video][7]*1000)
+                        #self.preview_video_obj.seek(self.dict_of_videos[self.selected_video][7]*1000)
+                        self.preview_video_obj.set_position(self.dict_of_videos[self.selected_video][7]/self.dict_of_videos[self.selected_video][5])
 
                 elif event.pos().x() > 0 and event.pos().x() < widget.width():
-                    self.preview_video_obj.seek(event.pos().x() * ((self.dict_of_videos[self.selected_video][5]*1000)/widget.width()))
+                    #self.preview_video_obj.seek(event.pos().x() * ((self.dict_of_videos[self.selected_video][5]*1000)/widget.width()))
+                    self.preview_video_obj.set_position(float(event.pos().x())  / float(widget.width()))
                 update_timeline(self)
 
         self.videos_player_timeline = videos_player_timeline(parent=self.videos_player_panel)
@@ -1834,7 +1848,8 @@ class main_window(QtGui.QWidget):
 
         class videos_player_controls_panel_frameback(QtGui.QWidget):
             def mousePressEvent(widget, event):
-                video_seek_back_frame(self, 1000/29.97)
+                #video_seek_back_frame(self, 1000/29.97)
+                video_seek_back_frame(self, 1.0/((float(self.dict_of_videos[self.selected_video][10].split('/')[0])/float(self.dict_of_videos[self.selected_video][10].split('/')[1]))*(self.dict_of_videos[self.selected_video][5])/1000))
                 self.videos_player_controls_panel_frameback_background.setPixmap(os.path.join(path_graphics, 'videos_player_controls_panel_frameback_press.png'))
             def enterEvent(widget, event):
                 self.videos_player_controls_panel_frameback_background.setPixmap(os.path.join(path_graphics, 'videos_player_controls_panel_frameback_over.png'))
@@ -1873,15 +1888,18 @@ class main_window(QtGui.QWidget):
 
         class videos_player_controls_panel_play(QtGui.QWidget):
             def mousePressEvent(widget, event):
-                if not self.preview_video_obj.state() == Phonon.PausedState:
+                #if not self.preview_video_obj.state() == Phonon.PausedState:
+                if not self.preview_video_obj.get_state() == vlc.State(3):
                     video_play(self)
                     self.videos_player_controls_panel_play_background.setPixmap(os.path.join(path_graphics, 'videos_player_controls_panel_play_press.png'))
 
             def enterEvent(widget, event):
-                if not self.preview_video_obj.state() in [Phonon.PausedState, Phonon.PlayingState]:
+                #if not self.preview_video_obj.state() in [Phonon.PausedState, Phonon.PlayingState]:
+                if not self.preview_video_obj.get_state() in [vlc.State(3), vlc.State(4)]:
                     self.videos_player_controls_panel_play_background.setPixmap(os.path.join(path_graphics, 'videos_player_controls_panel_play_over.png'))
             def leaveEvent(widget, event):
-                if not self.preview_video_obj.state() in [Phonon.PausedState, Phonon.PlayingState]:
+                #if not self.preview_video_obj.state() in [Phonon.PausedState, Phonon.PlayingState]:
+                if not self.preview_video_obj.get_state() in [vlc.State(3), vlc.State(4)]:
                     self.videos_player_controls_panel_play_background.setPixmap(os.path.join(path_graphics, 'videos_player_controls_panel_play_background.png'))
 
         self.videos_player_controls_panel_play = videos_player_controls_panel_play(parent=self.videos_player_controls_panel)
@@ -1893,19 +1911,35 @@ class main_window(QtGui.QWidget):
 
         class videos_player_controls_panel_pause(QtGui.QWidget):
             def mousePressEvent(widget, event):
-                if not self.preview_video_obj.state() in [Phonon.PausedState]:
+                #if not self.preview_video_obj.state() in [Phonon.PausedState]:
+                if self.preview_video_obj.is_playing():
                     video_pause(self)
                 else:
                     video_play(self)
             def enterEvent(widget, event):
-                if not self.preview_video_obj.state() in [Phonon.PausedState]:
+                #if not self.preview_video_obj.state() in [Phonon.PausedState]:
+                if self.preview_video_obj.get_state() == vlc.State(4):
+                    self.videos_player_controls_panel_pause_background.setPixmap(os.path.join(path_graphics, 'videos_player_controls_panel_pause_press.png'))
+                else:
                     self.videos_player_controls_panel_pause_background.setPixmap(os.path.join(path_graphics, 'videos_player_controls_panel_pause_over.png'))
+
+
+
             def mouseReleaseEvent(widget, event):
-                if not self.preview_video_obj.state() in [Phonon.PausedState]:
+                #if not self.preview_video_obj.state() in [Phonon.PausedState]:
+                if self.preview_video_obj.get_state() == vlc.State(4):
+                    self.videos_player_controls_panel_pause_background.setPixmap(os.path.join(path_graphics, 'videos_player_controls_panel_pause_press.png'))
+                else:
                     self.videos_player_controls_panel_pause_background.setPixmap(os.path.join(path_graphics, 'videos_player_controls_panel_pause_background.png'))
+
             def leaveEvent(widget, event):
-                if not self.preview_video_obj.state() in [Phonon.PausedState]:
+                #if not self.preview_video_obj.state() in [Phonon.PausedState]:
+
+                if self.preview_video_obj.get_state() == vlc.State(4):
+                    self.videos_player_controls_panel_pause_background.setPixmap(os.path.join(path_graphics, 'videos_player_controls_panel_pause_press.png'))
+                else:
                     self.videos_player_controls_panel_pause_background.setPixmap(os.path.join(path_graphics, 'videos_player_controls_panel_pause_background.png'))
+
 
         self.videos_player_controls_panel_pause = videos_player_controls_panel_pause(parent=self.videos_player_controls_panel)
         self.videos_player_controls_panel_pause.setGeometry(229,0,48,50)
@@ -1934,7 +1968,8 @@ class main_window(QtGui.QWidget):
 
         class videos_player_controls_panel_frameforward(QtGui.QWidget):
             def mousePressEvent(widget, event):
-                video_seek_next_frame(self, 1000/29.97)
+                #video_seek_next_frame(self, 1000/29.97)
+                video_seek_next_frame(self, 1.0/((float(self.dict_of_videos[self.selected_video][10].split('/')[0])/float(self.dict_of_videos[self.selected_video][10].split('/')[1]))*(self.dict_of_videos[self.selected_video][5])/1000))
                 self.videos_player_controls_panel_frameforward_background.setPixmap(os.path.join(path_graphics, 'videos_player_controls_panel_frameforward_press.png'))
             def enterEvent(widget, event):
                 self.videos_player_controls_panel_frameforward_background.setPixmap(os.path.join(path_graphics, 'videos_player_controls_panel_frameforward_over.png'))
@@ -2332,6 +2367,11 @@ class main_window(QtGui.QWidget):
         else:
             self.finalize_panel.setGeometry(self.main_panel.width(),0,480,100)
 
+        self.timer = QtCore.QTimer(self)
+        self.timer.setInterval(60)
+        self.connect(self.timer, QtCore.SIGNAL("timeout()"), lambda:update_timeline(self))
+        self.timer.start()
+
 ###################################################################################################
 ########################################################################################### PROJETO
 ###################################################################################################
@@ -2410,7 +2450,8 @@ def nowediting_panel_button_changed(self, nowediting):
         generate_effect(self, self.content_panel_animation, 'geometry', 500, [self.content_panel.x(),self.content_panel.y(),self.content_panel.width(),self.content_panel.height()], [0,80,self.content_panel.width(),self.content_panel.height()])
         generate_effect(self, self.options_panel_animation, 'geometry', 500, [self.options_panel.x(),self.options_panel.y(),self.options_panel.width(),self.options_panel.height()], [self.main_panel.width(),self.options_panel.y(),self.options_panel.width(),self.options_panel.height()])
         generate_effect(self, self.videos_player_panel_animation, 'geometry', 500, [self.videos_player_panel.x(),self.videos_player_panel.y(),self.videos_player_panel.width(),self.videos_player_panel.height()], [self.videos_player_panel.x(),self.main_panel.height(),self.videos_player_panel.width(),self.videos_player_panel.height()])
-        if self.preview_video_obj.state() in [Phonon.PlayingState]:
+        #if self.preview_video_obj.state() in [Phonon.PlayingState]:
+        if self.preview_video_obj.is_playing():
             video_pause(self)
         self.preview_video_widget.setShown(False)
         self.preview.setShown(True)
@@ -3134,7 +3175,8 @@ def main_tabs_changed(self):
         self.menus_properties_panel_overlay_preview_button.setShown(False)
         clean_videos_list_selection(self)
         if self.selected_video:
-            if self.preview_video_obj.state() == Phonon.PlayingState:
+            #if self.preview_video_obj.state() == Phonon.PlayingState:
+            if self.preview_video_obj.is_playing():
                 self.preview_video_obj.stop()
             self.preview_video_widget.setShown(True)
         self.selected_menu = None
@@ -3621,8 +3663,9 @@ def button_directions_selected(self):
 ###################################################################################################
 
 def update_timeline(self):
-    self.videos_player_controls_panel_current_time.setText(convert_to_timecode(str(self.preview_video_obj.currentTime()),'1/1000'))
-    self.videos_player_timeline.update()
+    if self.selected_video:
+        self.videos_player_controls_panel_current_time.setText(convert_to_timecode(str(self.preview_video_obj.get_position() * self.dict_of_videos[self.selected_video][5]), self.dict_of_videos[self.selected_video][10]))
+        self.videos_player_timeline.update()
 
 def add_video(self):
     video_path_list = QtGui.QFileDialog.getOpenFileNames(self, "Selecione um video", path_home, "Video files (*.m4v *.m2v *.mpg *.mp4 *.mov)")[0]
@@ -3634,8 +3677,9 @@ def add_video(self):
 
             chapters_list, chapters_dict = get_video_chapters(self, video_path)
 
-            length_xml = unicode(subprocess.Popen([ffprobe_bin, '-loglevel', 'error', '-show_format', '-print_format', 'xml', video_path], startupinfo=startupinfo, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE).stdout.read(), 'utf-8')
+            length_xml = unicode(subprocess.Popen([ffprobe_bin, '-loglevel', 'error', '-show_format', '-show_streams', '-print_format', 'xml', video_path], startupinfo=startupinfo, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE).stdout.read(), 'utf-8')
             length = float(length_xml.split(' duration="')[1].split('"')[0])
+            framerate = length_xml.split(' r_frame_rate="')[1].split('"')[0]
 
             start = False
             end = False
@@ -3649,7 +3693,8 @@ def add_video(self):
                                                     start,                        # [6] Start
                                                     end,                          # [7] End
                                                     None,                         # [8] Post
-                                                    0                             # [9] Resolution
+                                                    0,                            # [9] Resolution
+                                                    framerate                     # [10] Framerate
                                                 ]
             self.list_of_videos.append(video_name)
 
@@ -3695,7 +3740,10 @@ def video_selected(self):
         self.nowediting_videos_panel_remove.setEnabled(False)
 
     self.preview_video_widget.setShown(True)
-    self.preview_video_obj.setCurrentSource(Phonon.MediaSource(get_preview_file(self, self.dict_of_videos[self.selected_video][0])))
+    media = video_instance.media_new(get_preview_file(self, self.dict_of_videos[self.selected_video][0]))
+
+    #self.preview_video_obj.setCurrentSource(Phonon.MediaSource(get_preview_file(self, self.dict_of_videos[self.selected_video][0])))
+    self.preview_video_obj.set_media(media)
 
     nowediting_panel_button_changed(self, self.nowediting)
 
@@ -3717,24 +3765,26 @@ def video_stop(self):
     update_timeline(self)
 
 def video_seek_next_frame(self, position):
-    self.preview_video_obj.seek(self.preview_video_obj.currentTime() + position)
+    #self.preview_video_obj.seek(self.preview_video_obj.currentTime() + position)
+    self.preview_video_obj.set_position(self.preview_video_obj.get_position() + position)
     update_timeline(self)
 
 def video_seek_back_frame(self, position):
-    self.preview_video_obj.seek(self.preview_video_obj.currentTime() - position)
+    #self.preview_video_obj.seek(self.preview_video_obj.currentTime() - position)
+    self.preview_video_obj.set_position(self.preview_video_obj.get_position() - position)
     update_timeline(self)
 
 def video_add_this_mark_frame(self):
     self.selected_video_chapter = None
-    append_chapter(self, check_name(self, self.dict_of_videos[self.selected_video][1], 'mark'), convert_to_timecode(str(self.preview_video_obj.currentTime()), '1/1000'))
+    append_chapter(self, check_name(self, self.dict_of_videos[self.selected_video][1], 'mark'), convert_to_timecode(str(self.preview_video_obj.get_position() * self.dict_of_videos[self.selected_video][5])))
     update_changes(self)
 
 def video_set_trim_start(self):
-    self.dict_of_videos[self.selected_video][6] = self.preview_video_obj.currentTime()/1000.0
+    self.dict_of_videos[self.selected_video][6] = self.preview_video_obj.get_position() * self.dict_of_videos[self.selected_video][5]
     update_timeline(self)
 
 def video_set_trim_end(self):
-    self.dict_of_videos[self.selected_video][7] = self.preview_video_obj.currentTime()/1000.0
+    self.dict_of_videos[self.selected_video][7] = self.preview_video_obj.get_position() * self.dict_of_videos[self.selected_video][5]
     update_timeline(self)
 
 def populate_jumpto(self):
@@ -3825,7 +3875,8 @@ def chapter_selected(self):
     chapter_seek_in_timeline(self)
 
 def chapter_seek_in_timeline(self):
-    self.preview_video_obj.seek(convert_timecode_to_miliseconds(self.dict_of_videos[self.selected_video][2][self.selected_video_chapter]))
+    #self.preview_video_obj.seek(convert_timecode_to_miliseconds(self.dict_of_videos[self.selected_video][2][self.selected_video_chapter]))
+    self.preview_video_obj.set_position(convert_timecode_to_miliseconds(self.dict_of_videos[self.selected_video][2][self.selected_video_chapter])/self.dict_of_videos[self.selected_video][5])
 
 def add_chapter(self):
     self.selected_video_chapter = None
