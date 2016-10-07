@@ -1088,7 +1088,15 @@ class main_window(QtGui.QWidget):
         if sys.platform == "linux2": # for Linux using the X Server
             self.preview_video_obj.set_xwindow(self.preview_video_widget.winId())
         elif sys.platform == "win32": # for Windows
-            self.preview_video_obj.set_hwnd(self.preview_video_widget.winId())
+            pycobject_hwnd = widget.winId(self.preview_video_widget.winId())
+            
+            import ctypes
+            ctypes.pythonapi.PyCObject_AsVoidPtr.restype = ctypes.c_void_p
+            ctypes.pythonapi.PyCObject_AsVoidPtr.argtypes = [ctypes.py_object]
+
+            int_hwnd = ctypes.pythonapi.PyCObject_AsVoidPtr(pycobject_hwnd)
+            
+            self.preview_video_obj.set_hwnd(int_hwnd)
         elif sys.platform == "darwin": # for MacOS
             self.preview_video_obj.set_agl(self.preview_video_widget.winId())
 
