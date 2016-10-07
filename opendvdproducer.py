@@ -1088,7 +1088,7 @@ class main_window(QtGui.QWidget):
         if sys.platform == "linux2": # for Linux using the X Server
             self.preview_video_obj.set_xwindow(self.preview_video_widget.winId())
         elif sys.platform == "win32": # for Windows
-            pycobject_hwnd = widget.winId(self.preview_video_widget.winId())
+            pycobject_hwnd = self.preview_video_widget.winId()
             
             import ctypes
             ctypes.pythonapi.PyCObject_AsVoidPtr.restype = ctypes.c_void_p
