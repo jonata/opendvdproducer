@@ -43,16 +43,16 @@ if sys.platform == 'darwin':
     split_bin = '/usr/bin/split'
 
 elif sys.platform == 'win32':
-    path_opendvdproducer_resources = path_opendvdproducer
-    iso2ddp_bin = os.path.join(path_opendvdproducer, 'iso2ddp.exe')
-    imagemagick_convert_bin = os.path.join(path_opendvdproducer, 'convert.exe')
-    ffprobe_bin = os.path.join(path_opendvdproducer, 'ffprobe.exe')
-    ffmpeg_bin = os.path.join(path_opendvdproducer, 'ffmpeg.exe')
-    spumux_bin = os.path.join(path_opendvdproducer, 'spumux.exe')
-    dvdauthor_bin = os.path.join(path_opendvdproducer, 'dvdauthor.exe')
-    mkisofs_bin = os.path.join(path_opendvdproducer, 'mkisofs.exe')
-    md5_bin = os.path.join(path_opendvdproducer, 'md5.exe')
-    split_bin = os.path.join(path_opendvdproducer, 'split.exe')
+    #path_opendvdproducer_resources = path_opendvdproducer
+    iso2ddp_bin = os.path.join(path_opendvdproducer_resources, 'iso2ddp.exe')
+    imagemagick_convert_bin = os.path.join(path_opendvdproducer_resources, 'convert.exe')
+    ffprobe_bin = os.path.join(path_opendvdproducer_resources, 'ffprobe.exe')
+    ffmpeg_bin = os.path.join(path_opendvdproducer_resources, 'ffmpeg.exe')
+    spumux_bin = os.path.join(path_opendvdproducer_resources, 'spumux.exe')
+    dvdauthor_bin = os.path.join(path_opendvdproducer_resources, 'dvdauthor.exe')
+    mkisofs_bin = os.path.join(path_opendvdproducer_resources, 'mkisofs.exe')
+    md5_bin = os.path.join(path_opendvdproducer_resources, 'md5.exe')
+    split_bin = os.path.join(path_opendvdproducer_resources, 'split.exe')
     interface_font_size = 9
 else:
     if subprocess.call("type ffprobe", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE) == 0:
