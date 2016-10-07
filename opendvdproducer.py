@@ -16,7 +16,7 @@ if sys.platform == 'win32' or os.name == 'nt':
     startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
 
     if getattr(sys, 'frozen', False):
-        path_opendvdproducer = path_opendvdproducer = getattr(sys, '_MEIPASS', os.getcwd())#sys._MEIPASS
+        path_opendvdproducer = getattr(sys, '_MEIPASS', os.getcwd())#sys._MEIPASS
     else:
         path_opendvdproducer = os.path.dirname(os.path.abspath(__file__))
 else:
