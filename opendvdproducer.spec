@@ -18,7 +18,12 @@ for filename in os.listdir('resources'):
     filepath = 'resources' + '\\' + filename
 
     if os.path.isfile(filepath) and (filepath.endswith('exe') or filepath.endswith('dll') or filepath.endswith('ttf') or filepath.endswith('flac')) and not filepath.startswith('.'):
-        DATA_FILES.append((filename, filepath, 'DATA'))
+        DATA_FILES.append((filepath, filepath, 'DATA'))
+
+    if filename == 'plugins':
+        for directory in os.listdir(filepath)
+            for dll in os.listdir(filepath + '\\' + directory)
+                DATA_FILES.append((filepath + '\\' + directory + '\\' + dll, filepath + '\\' + directory + '\\' + dll, 'DATA'))
 
 a.datas += DATA_FILES
 
