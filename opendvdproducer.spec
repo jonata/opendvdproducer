@@ -21,7 +21,7 @@ for filename in os.listdir('resources'):
         DATA_FILES.append((filepath, filepath, 'DATA'))
 
     if filename == 'plugins':
-        for directory in os.listdir(filepath)
+        for directory in os.listdir(filepath):
             for dll in os.listdir(filepath + '\\' + directory)
                 DATA_FILES.append((filepath + '\\' + directory + '\\' + dll, filepath + '\\' + directory + '\\' + dll, 'DATA'))
 
