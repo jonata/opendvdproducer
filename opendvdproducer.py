@@ -1089,13 +1089,13 @@ class main_window(QtGui.QWidget):
             self.preview_video_obj.set_xwindow(self.preview_video_widget.winId())
         elif sys.platform == "win32": # for Windows
             pycobject_hwnd = self.preview_video_widget.winId()
-            
+
             import ctypes
             ctypes.pythonapi.PyCObject_AsVoidPtr.restype = ctypes.c_void_p
             ctypes.pythonapi.PyCObject_AsVoidPtr.argtypes = [ctypes.py_object]
 
             int_hwnd = ctypes.pythonapi.PyCObject_AsVoidPtr(pycobject_hwnd)
-            
+
             self.preview_video_obj.set_hwnd(int_hwnd)
         elif sys.platform == "darwin": # for MacOS
             self.preview_video_obj.set_agl(self.preview_video_widget.winId())
@@ -3971,11 +3971,11 @@ app.addLibraryPath(app.applicationDirPath() + "/../PlugIns")
 app.setStyle("plastique")
 app.setApplicationName("Open DVD Producer")
 font_database = QtGui.QFontDatabase()
-font_database.addApplicationFont(os.path.join(path_opendvdproducer,'Ubuntu-RI.ttf'))
-font_database.addApplicationFont(os.path.join(path_opendvdproducer,'Ubuntu-R.ttf'))
-font_database.addApplicationFont(os.path.join(path_opendvdproducer,'Ubuntu-B.ttf'))
-font_database.addApplicationFont(os.path.join(path_opendvdproducer,'Ubuntu-BI.ttf'))
-font_database.addApplicationFont(os.path.join(path_opendvdproducer,'UbuntuMono-R.ttf'))
+font_database.addApplicationFont(os.path.join(path_opendvdproducer, 'resources','Ubuntu-RI.ttf'))
+font_database.addApplicationFont(os.path.join(path_opendvdproducer, 'resources','Ubuntu-R.ttf'))
+font_database.addApplicationFont(os.path.join(path_opendvdproducer, 'resources','Ubuntu-B.ttf'))
+font_database.addApplicationFont(os.path.join(path_opendvdproducer, 'resources','Ubuntu-BI.ttf'))
+font_database.addApplicationFont(os.path.join(path_opendvdproducer, 'resources','UbuntuMono-R.ttf'))
 app.setFont(QtGui.QFont('Ubuntu', interface_font_size))
 app.setDesktopSettingsAware(False)
 app.main = main_window()
