@@ -3636,7 +3636,7 @@ def add_video(self):
 
             length_xml = unicode(subprocess.Popen([ffprobe_bin, '-loglevel', 'error', '-show_format', '-show_streams', '-print_format', 'xml', video_path], startupinfo=startupinfo, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE).stdout.read(), 'utf-8')
             length = float(length_xml.split(' duration="')[1].split('"')[0])
-            framerate = float(length_xml.split(' r_frame_rate="')[1].split('"')[0].split('/')[0]) / float(length_xml.split(' r_frame_rate="')[1].split('"')[0].split('/')[1])
+            framerate = float(length_xml.split(' codec_type="video"')[1].split(' r_frame_rate="')[1].split('"')[0].split('/')[0]) / float(length_xml.split(' codec_type="video"')[1].split(' r_frame_rate="')[1].split('"')[0].split('/')[1])
 
             start = False
             end = False
