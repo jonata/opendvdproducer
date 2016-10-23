@@ -3698,8 +3698,6 @@ def video_selected(self):
 
     self.preview_video_widget.setShown(True)
     media = video_instance.media_new(get_preview_file(self, self.dict_of_videos[self.selected_video][0]))
-
-    #self.preview_video_obj.setCurrentSource(Phonon.MediaSource(get_preview_file(self, self.dict_of_videos[self.selected_video][0])))
     self.preview_video_obj.set_media(media)
 
     nowediting_panel_button_changed(self, self.nowediting)
