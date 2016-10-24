@@ -1,7 +1,7 @@
 import os
 
 a = Analysis(['opendvdproducer.py'],
-             pathex=['C:\\Users\\jbolzan\\Dropbox\\Projects\\opendvdproducer'],
+             pathex=['C:\\Users\\jbolzan\\Documents\\GitHub\\opendvdproducer'],
              hiddenimports=[],
              hookspath=None,
              runtime_hooks=None)
