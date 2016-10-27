@@ -1188,7 +1188,7 @@ class main_window(QtGui.QWidget):
 
         self.options_panel_dvd_panel_menu_bitrate_field = QtGui.QSpinBox(parent=self.options_panel_dvd_panel)
         self.options_panel_dvd_panel_menu_bitrate_field.setGeometry(10, 435, 100, 30)
-        self.options_panel_dvd_panel_menu_bitrate_field.setMinimum(1000)
+        self.options_panel_dvd_panel_menu_bitrate_field.setMinimum(200)
         self.options_panel_dvd_panel_menu_bitrate_field.setMaximum(9600)
         self.options_panel_dvd_panel_menu_bitrate_field.editingFinished.connect(lambda:options_panel_dvd_panel_bitrates_changed(self))
 
@@ -1202,7 +1202,7 @@ class main_window(QtGui.QWidget):
 
         self.options_panel_dvd_panel_menu_max_bitrate_field = QtGui.QSpinBox(parent=self.options_panel_dvd_panel)
         self.options_panel_dvd_panel_menu_max_bitrate_field.setGeometry(10, 495, 100, 30)
-        self.options_panel_dvd_panel_menu_max_bitrate_field.setMinimum(1000)
+        self.options_panel_dvd_panel_menu_max_bitrate_field.setMinimum(200)
         self.options_panel_dvd_panel_menu_max_bitrate_field.setMaximum(9600)
         self.options_panel_dvd_panel_menu_max_bitrate_field.editingFinished.connect(lambda:options_panel_dvd_panel_bitrates_changed(self))
 
@@ -1244,7 +1244,7 @@ class main_window(QtGui.QWidget):
 
         self.options_panel_dvd_panel_video_bitrate_field = QtGui.QSpinBox(parent=self.options_panel_dvd_panel)
         self.options_panel_dvd_panel_video_bitrate_field.setGeometry(190, 435, 100, 30)
-        self.options_panel_dvd_panel_video_bitrate_field.setMinimum(1000)
+        self.options_panel_dvd_panel_video_bitrate_field.setMinimum(200)
         self.options_panel_dvd_panel_video_bitrate_field.setMaximum(9600)
         self.options_panel_dvd_panel_video_bitrate_field.editingFinished.connect(lambda:options_panel_dvd_panel_bitrates_changed(self))
 
@@ -1258,7 +1258,7 @@ class main_window(QtGui.QWidget):
 
         self.options_panel_dvd_panel_video_max_bitrate_field = QtGui.QSpinBox(parent=self.options_panel_dvd_panel)
         self.options_panel_dvd_panel_video_max_bitrate_field.setGeometry(190, 495, 100, 30)
-        self.options_panel_dvd_panel_video_max_bitrate_field.setMinimum(1000)
+        self.options_panel_dvd_panel_video_max_bitrate_field.setMinimum(200)
         self.options_panel_dvd_panel_video_max_bitrate_field.setMaximum(9600)
         self.options_panel_dvd_panel_video_max_bitrate_field.editingFinished.connect(lambda:options_panel_dvd_panel_bitrates_changed(self))
 
