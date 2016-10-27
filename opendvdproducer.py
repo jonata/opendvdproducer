@@ -2816,7 +2816,7 @@ def write_project_file(self):
         if self.dict_of_menus[menu][5]:
             final_project_file += ' sound="' + get_relative_path(self, self.dict_of_menus[menu][5]) + '"'
         final_project_file += ' main_menu="' + str(self.dict_of_menus[menu][6]) + '"'
-        final_project_file += ' transparency="' + str(self.dict_of_menus[menu][9]) + '"'
+        final_project_file += ' transparency="' + str(self.dict_of_menus[menu][7]) + '"'
         final_project_file += ' border="' + str(self.dict_of_menus[menu][8]) + '"'
         final_project_file += ' length="' + str(self.dict_of_menus[menu][9]) + '"'
         final_project_file += '>'
