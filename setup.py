@@ -43,9 +43,9 @@ for filename in os.listdir('resources'):
         if filepath.endswith('flac') or (not sys.platform.startswith('linux') and filepath.endswith('ttf')) or (sys.platform == 'darwin' and (not filepath.endswith('exe') and not filepath.endswith('dll'))):
             DATA_FILES.append((share_or_resources + '', [filepath]))
 
-if sys.platform == 'darwin':
-    DATA_FILES.append(('../PlugIns/phonon_backend', ['/Developer/Applications/Qt/plugins/phonon_backend/libphonon_qt7.dylib']))
-elif sys.platform.startswith('linux'):
+#if sys.platform == 'darwin':
+#    DATA_FILES.append(('../PlugIns/phonon_backend', ['/Developer/Applications/Qt/plugins/phonon_backend/libphonon_qt7.dylib']))
+if sys.platform.startswith('linux'):
     DATA_FILES.append(('bin', ['bin/' + NAME]))
     DATA_FILES.append(('share/applications', ['bin/' + NAME + '.desktop']))
     DATA_FILES.append(('share/pixmaps', ['pixmaps/' + NAME + '.png']))
