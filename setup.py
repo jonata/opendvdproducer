@@ -16,11 +16,12 @@ if sys.platform == 'darwin':
                     'argv_emulation': True,
                     'iconfile':'pixmaps/opendvdproducer.icns',
                     'emulate_shell_environment':True,
-                    'frameworks':[  'libs/libMagickCore-6.Q16.1.dylib',
-                                    'libs/libiconv.2.dylib',
-                                    'libs/libpng16.16.dylib',
-                                    'libs/libfreetype.6.dylib',
-                                    'libs/libintl.8.dylib',
+                    'frameworks':[  'resources/libMagickCore-6.Q16.1.dylib',
+                                    'resources/libMagickWand-6.Q16.1.dylib',
+                                    'resources/libiconv.2.dylib',
+                                    'resources/libpng16.16.dylib',
+                                    'resources/libfreetype.6.dylib',
+                                    'resources/libintl.8.dylib',
                                     ],
                 }}
     REQUIRES = ['py2app']
