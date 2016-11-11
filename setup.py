@@ -23,7 +23,7 @@ if sys.platform == 'darwin':
                                     'resources/libfreetype.6.dylib',
                                     'resources/libfontconfig.1.dylib',
                                     'resources/libintl.8.dylib',
-                    #                ],
+                                    ],
                 }}
     REQUIRES = ['py2app']
     share_or_resources = ''
