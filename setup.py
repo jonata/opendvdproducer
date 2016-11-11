@@ -16,13 +16,13 @@ if sys.platform == 'darwin':
                     'argv_emulation': True,
                     'iconfile':'pixmaps/opendvdproducer.icns',
                     'emulate_shell_environment':True,
-                    'frameworks':[  'resources/libMagickCore-6.Q16.1.dylib',
-                                    'resources/libMagickWand-6.Q16.1.dylib',
-                                    'resources/libiconv.2.dylib',
-                                    'resources/libpng16.16.dylib',
-                                    'resources/libfreetype.6.dylib',
-                                    'resources/libintl.8.dylib',
-                                    ],
+                    #'frameworks':[  'resources/libMagickCore-6.Q16.1.dylib',
+                    #                'resources/libMagickWand-6.Q16.1.dylib',
+                    #                'resources/libiconv.2.dylib',
+                    #                'resources/libpng16.16.dylib',
+                    #                'resources/libfreetype.6.dylib',
+                    #                'resources/libintl.8.dylib',
+                    #                ],
                 }}
     REQUIRES = ['py2app']
     share_or_resources = ''
@@ -31,7 +31,7 @@ else:
     REQUIRES = []
     share_or_resources = 'share/' + NAME + '/'
 
-DATA_FILES = []
+DATA_FILES = [(share_or_resources + 'vlc.py', ['vlc.py'])]
 for filename in os.listdir('graphics'):
     filepath = 'graphics' + os.sep + filename
     if os.path.isfile(filepath) and (filepath.endswith('png') or filepath.endswith('mkv')):
