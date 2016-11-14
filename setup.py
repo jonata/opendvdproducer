@@ -32,7 +32,7 @@ else:
     REQUIRES = []
     share_or_resources = 'share/' + NAME + '/'
 
-DATA_FILES = [(share_or_resources + 'vlc.py', ['vlc.py'])]
+DATA_FILES = [(share_or_resources + 'vlc.py', [])]
 for filename in os.listdir('graphics'):
     filepath = 'graphics' + os.sep + filename
     if os.path.isfile(filepath) and (filepath.endswith('png') or filepath.endswith('mkv')):
@@ -41,7 +41,7 @@ for filename in os.listdir('graphics'):
 for filename in os.listdir('resources'):
     filepath = 'resources' + os.sep + filename
     if os.path.isfile(filepath):
-        if filepath.endswith('flac') or (not sys.platform.startswith('linux') and filepath.endswith('ttf')) or (sys.platform == 'darwin' and (not filepath.endswith('exe') and not filepath.endswith('dll'))):
+        if filepath.endswith('flac') or (not sys.platform.startswith('linux') and filepath.endswith('ttf')) or (sys.platform == 'darwin' and (not filepath.endswith('exe') and not filepath.endswith('dll') and not filepath.endswith('.dylib'))):
             DATA_FILES.append((share_or_resources + '', [filepath]))
 
 #if sys.platform == 'darwin':
