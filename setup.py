@@ -13,6 +13,7 @@ NAME = str(open('debian/changelog').read()).split(' (')[0]
 VERSION = str(open('debian/changelog').read()).split('(')[1].split(')')[0]
 if sys.platform == 'darwin':
     OPTIONS = {'py2app':  {
+                    'extra_scripts': ['vlc.py'],
                     'argv_emulation': True,
                     'iconfile':'pixmaps/opendvdproducer.icns',
                     'emulate_shell_environment':True,
@@ -23,6 +24,8 @@ if sys.platform == 'darwin':
                                     'resources/libfreetype.6.dylib',
                                     'resources/libfontconfig.1.dylib',
                                     'resources/libintl.8.dylib',
+                                    'resources/libvlc.5.dylib',
+                                    'resources/libvlccore.8.dylib',
                                     ],
                 }}
     REQUIRES = ['py2app']
@@ -32,7 +35,7 @@ else:
     REQUIRES = []
     share_or_resources = 'share/' + NAME + '/'
 
-DATA_FILES = [(share_or_resources + 'vlc.py', ['vlc.py'])]
+DATA_FILES = []#(share_or_resources + 'vlc.py')
 for filename in os.listdir('graphics'):
     filepath = 'graphics' + os.sep + filename
     if os.path.isfile(filepath) and (filepath.endswith('png') or filepath.endswith('mkv')):
@@ -41,8 +44,11 @@ for filename in os.listdir('graphics'):
 for filename in os.listdir('resources'):
     filepath = 'resources' + os.sep + filename
     if os.path.isfile(filepath):
-        if filepath.endswith('flac') or (not sys.platform.startswith('linux') and filepath.endswith('ttf')) or (sys.platform == 'darwin' and (not filepath.endswith('exe') and not filepath.endswith('dll'))):
+        if filepath.endswith('flac') or (not sys.platform.startswith('linux') and filepath.endswith('ttf')) or (sys.platform == 'darwin' and (not filepath.endswith('exe') and not filepath.endswith('dll') and not filepath.endswith('dylib'))):
             DATA_FILES.append((share_or_resources + '', [filepath]))
+    elif os.path.isdir(filepath) and filename == 'plugins_mac' and sys.platform == 'darwin':
+        for dylib in os.listdir(filepath):
+            DATA_FILES.append((filename + os.sep + dylib, [filepath + os.sep + dylib]))
 
 #if sys.platform == 'darwin':
 #    DATA_FILES.append(('../PlugIns/phonon_backend', ['/Developer/Applications/Qt/plugins/phonon_backend/libphonon_qt7.dylib']))
@@ -51,6 +57,7 @@ if sys.platform.startswith('linux'):
     DATA_FILES.append(('share/applications', ['bin/' + NAME + '.desktop']))
     DATA_FILES.append(('share/pixmaps', ['pixmaps/' + NAME + '.png']))
     DATA_FILES.append(('share/' + NAME, [NAME + '.py']))
+
 setup(
     name='Open DVD Producer',
     version=VERSION,
