@@ -2592,7 +2592,7 @@ def get_relative_path(self, path):
 def get_preview_file(self, path):
     final_path = path
     if not os.path.isfile(path):
-        if path.split('.')[-1] in ['mov', 'm4v', 'mpg', 'm2v', 'mp4']:
+        if path.split('.')[-1] in ['mov', 'm4v', 'mpg', 'm2v', 'mp4', 'mkv']:
             final_path = os.path.join(path_graphics, 'file_not_found.mkv')
         else:
             final_path = os.path.join(path_graphics, 'file_not_found.png')
@@ -3269,7 +3269,7 @@ def choose_color(self):
 
 
 def generate_preview_image(self, image_item, image_dict):
-    if image_dict[image_item][0].split('.')[-1] in ['mov', 'm4v', 'mpg', 'm2v', 'mp4']:
+    if image_dict[image_item][0].split('.')[-1] in ['mov', 'm4v', 'mpg', 'm2v', 'mp4', 'mkv']:
         subprocess.call([ffmpeg_bin, '-loglevel', 'error', '-y', '-ss', '00:03.00', '-i', get_preview_file(self, image_dict[image_item][0]), '-frames:v', '1', os.path.join(path_tmp, image_item + '.preview_.png')], startupinfo=startupinfo)
         image_path = os.path.join(path_tmp, image_item + '.preview_.png')
     else:
@@ -3320,7 +3320,7 @@ def duplicate_menu(self):
     nowediting_panel_button_changed(self, self.nowediting)
 
 def add_menu(self):
-    image_path_list = QtGui.QFileDialog.getOpenFileNames(self, 'Select the image or video for menu', path_home, 'PNG, JPEG images or MPEG videos (*.jpg *.png *.m4v *.m2v *.mpg *.mp4 *.mov)')[0]#.toUtf8()
+    image_path_list = QtGui.QFileDialog.getOpenFileNames(self, 'Select the image or video for menu', path_home, 'PNG, JPEG images or MPEG videos (*.jpg *.png *.m4v *.m2v *.mpg *.mp4 *.mov *.mkv)')[0]#.toUtf8()
 
     for image_path_file in image_path_list:
         image_path = os.path.abspath(image_path_file)
@@ -3378,7 +3378,7 @@ def populate_menus_list(self):
         self.nowediting_menus_panel_list.addItem(QtGui.QListWidgetItem(icon, menu))
 
 def select_menu_file(self):
-    image_path = QtGui.QFileDialog.getOpenFileName(self, 'Select the image or video for menu', path_home, 'PNG, JPEG images or MPEG videos (*.jpg *.png *.m4v *.m2v *.mpg *.mp4 *.mov)')[0]#.toUtf8()
+    image_path = QtGui.QFileDialog.getOpenFileName(self, 'Select the image or video for menu', path_home, 'PNG, JPEG images or MPEG videos (*.jpg *.png *.m4v *.m2v *.mpg *.mp4 *.mov *.mkv)')[0]#.toUtf8()
     if not image_path == '':
         self.dict_of_menus[self.selected_menu][0] = image_path
 
@@ -3625,7 +3625,7 @@ def update_timeline(self):
         self.videos_player_timeline.update()
 
 def add_video(self):
-    video_path_list = QtGui.QFileDialog.getOpenFileNames(self, "Selecione um video", path_home, "Video files (*.m4v *.m2v *.mpg *.mp4 *.mov)")[0]
+    video_path_list = QtGui.QFileDialog.getOpenFileNames(self, "Selecione um video", path_home, "Video files (*.m4v *.m2v *.mpg *.mp4 *.mov *.mkv)")[0]
 
     for video_path_file in video_path_list:
         video_path = os.path.abspath(video_path_file)
@@ -3792,7 +3792,7 @@ def populate_jumpto_list(self):
 ###################################################################################################
 
 def import_chapters(self):
-    filepath = QtGui.QFileDialog.getOpenFileName(self, "Select a video or XML", path_home, "Video files (*.fcpxml *.m4v *.m2v *.mpg *.mp4 *.mov)")[0]#.toUtf8()
+    filepath = QtGui.QFileDialog.getOpenFileName(self, "Select a video or XML", path_home, "Video files (*.fcpxml *.m4v *.m2v *.mpg *.mp4 *.mov *.mkv)")[0]#.toUtf8()
     if not filepath == '':
         chapters_list, chapters_dict = get_video_chapters(self, filepath)
 

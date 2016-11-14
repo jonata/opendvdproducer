@@ -35,7 +35,11 @@ else:
     REQUIRES = []
     share_or_resources = 'share/' + NAME + '/'
 
+<<<<<<< HEAD
 DATA_FILES = []#(share_or_resources + 'vlc.py')
+=======
+DATA_FILES = [(share_or_resources + 'vlc.py', [])]
+>>>>>>> 6f0001cccec19e2b4ffd91584782e07dfed78e7b
 for filename in os.listdir('graphics'):
     filepath = 'graphics' + os.sep + filename
     if os.path.isfile(filepath) and (filepath.endswith('png') or filepath.endswith('mkv')):
@@ -44,7 +48,11 @@ for filename in os.listdir('graphics'):
 for filename in os.listdir('resources'):
     filepath = 'resources' + os.sep + filename
     if os.path.isfile(filepath):
+<<<<<<< HEAD
         if filepath.endswith('flac') or (not sys.platform.startswith('linux') and filepath.endswith('ttf')) or (sys.platform == 'darwin' and (not filepath.endswith('exe') and not filepath.endswith('dll') and not filepath.endswith('dylib'))):
+=======
+        if filepath.endswith('flac') or (not sys.platform.startswith('linux') and filepath.endswith('ttf')) or (sys.platform == 'darwin' and (not filepath.endswith('exe') and not filepath.endswith('dll') and not filepath.endswith('.dylib'))):
+>>>>>>> 6f0001cccec19e2b4ffd91584782e07dfed78e7b
             DATA_FILES.append((share_or_resources + '', [filepath]))
     elif os.path.isdir(filepath) and filename == 'plugins_mac' and sys.platform == 'darwin':
         for dylib in os.listdir(filepath):
