@@ -3,7 +3,6 @@
 
 import os, sys, subprocess, time, random, codecs, tempfile, shutil, shutil,copy
 
-import vlc
 
 from PySide import QtGui, QtCore
 
@@ -22,7 +21,6 @@ if sys.platform == 'win32' or os.name == 'nt':
 else:
     path_opendvdproducer = os.path.realpath(os.path.dirname(__file__))
 
-video_instance = vlc.Instance()
 
 path_graphics = os.path.join(path_opendvdproducer, 'graphics')
 path_home = os.path.expanduser("~")
@@ -1081,13 +1079,19 @@ class main_window(QtGui.QWidget):
         self.no_preview_label.setAlignment(QtCore.Qt.AlignCenter)
         self.no_preview_label.setForegroundRole(QtGui.QPalette.Midlight)
 
-        self.preview_video_obj = video_instance.media_player_new()
-
         self.preview_video_widget = QtGui.QLabel(parent=self.main_panel)
 
         if sys.platform == "linux2": # for Linux using the X Server
+            import vlc
+            self.video_instance = vlc.Instance()
+            self.preview_video_obj = self.video_instance.media_player_new()
             self.preview_video_obj.set_xwindow(self.preview_video_widget.winId())
+
         elif sys.platform == "win32": # for Windows
+            import vlc
+            self.video_instance = vlc.Instance()
+            self.preview_video_obj = self.video_instance.media_player_new()
+
             pycobject_hwnd = self.preview_video_widget.winId()
 
             import ctypes
@@ -1098,7 +1102,16 @@ class main_window(QtGui.QWidget):
 
             self.preview_video_obj.set_hwnd(int_hwnd)
         elif sys.platform == "darwin": # for MacOS
-            self.preview_video_obj.set_agl(self.preview_video_widget.winId())
+            if not os.path.isdir('/Applications/VLC.app'):
+                vlc_msg = QtGui.QMessageBox()
+                vlc_msg.setText('VLC is not installed in your system. To be able to load audio and video files, you need to have it installed.')
+                vlc_msg.exec_()
+                self.close()
+            else:
+                import vlc
+                self.video_instance = vlc.Instance()
+                self.preview_video_obj = self.video_instance.media_player_new()
+                self.preview_video_obj.set_nsobject(self.preview_video_widget.winId())
 
         self.options_panel = QtGui.QWidget(parent=self.content_panel)
         self.options_panel_animation = QtCore.QPropertyAnimation(self.options_panel, 'geometry')
@@ -3697,7 +3710,7 @@ def video_selected(self):
         self.nowediting_videos_panel_remove.setEnabled(False)
 
     self.preview_video_widget.setShown(True)
-    media = video_instance.media_new(get_preview_file(self, self.dict_of_videos[self.selected_video][0]))
+    media = self.video_instance.media_new(get_preview_file(self, self.dict_of_videos[self.selected_video][0]))
     self.preview_video_obj.set_media(media)
 
     nowediting_panel_button_changed(self, self.nowediting)

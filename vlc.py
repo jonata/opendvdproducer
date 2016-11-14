@@ -128,20 +128,20 @@ def find_lib():
 
     elif sys.platform.startswith('darwin'):
         # FIXME: should find a means to configure path
-        #d = '/Applications/VLC.app/Contents/MacOS/'
-        #p = d + 'lib/libvlc.dylib'
-        #if os.path.exists(p):
-        #    dll = ctypes.CDLL(p)
-        #    for p in ('modules', 'plugins'):
-        #        p = d + p
-        #        if os.path.isdir(p):
-        #            plugin_path = p
-        #            break
-        #else:  # hope, some PATH is set...
-        #    dll = ctypes.CDLL('libvlc.dylib')
-        path_vlc_resources = os.path.dirname(os.path.abspath(__file__))
-        plugin_path = os.path.join(path_vlc_resources, 'plugins_mac')
-        dll = ctypes.CDLL(os.path.join(path_vlc_resources, '..', 'Frameworks', 'libvlc.5.dylib'))
+        d = '/Applications/VLC.app/Contents/MacOS/'
+        p = d + 'lib/libvlc.dylib'
+        if os.path.exists(p):
+            dll = ctypes.CDLL(p)
+            for p in ('modules', 'plugins'):
+                p = d + p
+                if os.path.isdir(p):
+                    plugin_path = p
+                    break
+        else:  # hope, some PATH is set...
+            dll = ctypes.CDLL('libvlc.dylib')
+        #path_vlc_resources = os.path.dirname(os.path.abspath(__file__))
+        #plugin_path = os.path.join(path_vlc_resources, 'plugins_mac')
+        #dll = ctypes.CDLL(os.path.join(path_vlc_resources, '..', 'Frameworks', 'libvlc.5.dylib'))
 
     else:
         raise NotImplementedError('%s: %s not supported' % (sys.argv[0], sys.platform))
