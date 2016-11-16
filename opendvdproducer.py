@@ -1086,13 +1086,12 @@ class main_window(QtGui.QWidget):
         self.preview_video_widget = QtGui.QLabel(parent=self.main_panel)
 
         self.video_instance = vlc.Instance()
-
+        self.preview_video_obj = self.video_instance.media_player_new()
+        
         if sys.platform == "linux2": # for Linux using the X Server
             self.preview_video_obj.set_xwindow(self.preview_video_widget.winId())
 
         elif sys.platform == "win32": # for Windows
-            self.preview_video_obj = self.video_instance.media_player_new()
-
             pycobject_hwnd = self.preview_video_widget.winId()
             import ctypes
             ctypes.pythonapi.PyCObject_AsVoidPtr.restype = ctypes.c_void_p
@@ -1102,7 +1101,6 @@ class main_window(QtGui.QWidget):
             self.preview_video_obj.set_hwnd(int_hwnd)
 
         elif sys.platform == "darwin": # for MacOS
-            self.preview_video_obj = self.video_instance.media_player_new()
             self.preview_video_obj.set_nsobject(self.preview_video_widget.winId())
 
         self.options_panel = QtGui.QWidget(parent=self.content_panel)
