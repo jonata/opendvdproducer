@@ -1,8 +1,8 @@
-opendvdproducer (16.02) wily; urgency=low
+opendvdproducer (16.11) wily; urgency=low
 
   * Fixed issues on Windows version
-  * Window can be maximized
-  * Audio codec is no longer the buggy PCM
-  * General bug fixes
+  * Fixed issues on macOS version
+  * app bundle generator for macOS now is pyinstaller (it was py2app)
+  * Media engine for playback now is VLC
 
- -- Jonatã Bolzan Loss <jonata@jonata.org>  Tue, 10 Feb 2016 20:55:33 -0200
+ -- Jonatã Bolzan Loss <jonata@jonata.org>  Tue, 16 Nov 2016 14:35:33 -0200
