@@ -3,6 +3,7 @@
 
 import os, sys, subprocess, time, random, codecs, tempfile, shutil, shutil,copy
 
+import vlc
 
 from PySide import QtGui, QtCore
 
@@ -10,47 +11,49 @@ reload(sys)
 sys.setdefaultencoding("utf-8")
 
 startupinfo = None
-if sys.platform == 'win32' or os.name == 'nt':
-    startupinfo = subprocess.STARTUPINFO()
-    startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+if sys.platform == 'win32' or os.name == 'nt' or sys.platform == 'darwin':
+    if sys.platform == 'win32' or os.name == 'nt':
+        startupinfo = subprocess.STARTUPINFO()
+        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
 
     if getattr(sys, 'frozen', False):
         path_opendvdproducer = getattr(sys, '_MEIPASS', os.getcwd())#sys._MEIPASS
     else:
         path_opendvdproducer = os.path.dirname(os.path.abspath(__file__))
+#elif sys.platform == 'darwin' and getattr(sys, 'frozen', False):
+#    path_opendvdproducer = sys.argv[0]
 else:
-    path_opendvdproducer = os.path.realpath(os.path.dirname(__file__))
-
+    path_opendvdproducer = os.path.dirname(os.path.abspath(__file__))
 
 path_graphics = os.path.join(path_opendvdproducer, 'graphics')
+print path_graphics
+path_resources = os.path.join(path_opendvdproducer, 'resources')
 path_home = os.path.expanduser("~")
 path_tmp = os.path.join(tempfile.gettempdir(), 'opendvdproducer-' + str(random.randint(1000,9999)))
-path_opendvdproducer_resources = os.path.join(path_opendvdproducer, 'resources')
+
 
 if sys.platform == 'darwin':
-    path_opendvdproducer_resources = path_opendvdproducer
-    iso2ddp_bin = os.path.join(path_opendvdproducer, 'iso2ddp_mac')
-    imagemagick_convert_bin = os.path.join(path_opendvdproducer, 'convert')
-    interface_font_size = 12
-    ffprobe_bin = os.path.join(path_opendvdproducer, 'ffprobe')
-    ffmpeg_bin = os.path.join(path_opendvdproducer,  'ffmpeg')
-    spumux_bin = os.path.join(path_opendvdproducer, 'spumux')
-    dvdauthor_bin = os.path.join(path_opendvdproducer, 'dvdauthor')
-    mkisofs_bin = os.path.join(path_opendvdproducer, 'mkisofs')
+    imagemagick_convert_bin = os.path.join(path_resources, 'convert')
+    dvdauthor_bin = os.path.join(path_resources, 'dvdauthor')
+    ffmpeg_bin = os.path.join(path_resources,  'ffmpeg')
+    ffprobe_bin = os.path.join(path_resources, 'ffprobe')
+
+    spumux_bin = os.path.join(path_resources, 'spumux')
+    mkisofs_bin = os.path.join(path_resources, 'mkisofs')
     md5_bin = '/sbin/md5'
     split_bin = '/usr/bin/split'
+    interface_font_size = 12
 
 elif sys.platform == 'win32':
-    #path_opendvdproducer_resources = path_opendvdproducer
-    iso2ddp_bin = os.path.join(path_opendvdproducer_resources, 'iso2ddp.exe')
-    imagemagick_convert_bin = os.path.join(path_opendvdproducer_resources, 'convert.exe')
-    ffprobe_bin = os.path.join(path_opendvdproducer_resources, 'ffprobe.exe')
-    ffmpeg_bin = os.path.join(path_opendvdproducer_resources, 'ffmpeg.exe')
-    spumux_bin = os.path.join(path_opendvdproducer_resources, 'spumux.exe')
-    dvdauthor_bin = os.path.join(path_opendvdproducer_resources, 'dvdauthor.exe')
-    mkisofs_bin = os.path.join(path_opendvdproducer_resources, 'mkisofs.exe')
-    md5_bin = os.path.join(path_opendvdproducer_resources, 'md5.exe')
-    split_bin = os.path.join(path_opendvdproducer_resources, 'split.exe')
+    imagemagick_convert_bin = os.path.join(path_resources, 'convert.exe')
+    dvdauthor_bin = os.path.join(path_resources, 'dvdauthor.exe')
+    ffmpeg_bin = os.path.join(path_resources, 'ffmpeg.exe')
+    ffprobe_bin = os.path.join(path_resources, 'ffprobe.exe')
+
+    spumux_bin = os.path.join(path_resources, 'spumux.exe')
+    mkisofs_bin = os.path.join(path_resources, 'mkisofs.exe')
+    md5_bin = os.path.join(path_resources, 'md5.exe')
+    split_bin = os.path.join(path_resources, 'split.exe')
     interface_font_size = 9
 else:
     if subprocess.call("type ffprobe", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE) == 0:
@@ -367,7 +370,7 @@ class generate_dvd_thread(QtCore.QThread):
                     if self.dict_of_menus[menu][5] and os.path.isfile(self.dict_of_menus[menu][5]):
                         sound_file = self.dict_of_menus[menu][5]
                     else:
-                        sound_file = os.path.join(path_opendvdproducer_resources,'silence.flac')
+                        sound_file = os.path.join(path_resources,'silence.flac')
 
                     sound_length_xml = unicode(subprocess.Popen([ffprobe_bin,'-loglevel', 'error',  '-show_format', '-print_format', 'xml', sound_file], startupinfo=startupinfo, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE).stdout.read(), 'utf-8')
                     if ' duration="' in sound_length_xml:
@@ -776,6 +779,7 @@ class main_window(QtGui.QWidget):
         self.resolutions = []
 
         self.is_generating = False
+        self.is_showing_options_panel = False
 
         self.main_panel = QtGui.QWidget(parent=self)
 
@@ -1081,37 +1085,25 @@ class main_window(QtGui.QWidget):
 
         self.preview_video_widget = QtGui.QLabel(parent=self.main_panel)
 
+        self.video_instance = vlc.Instance()
+
         if sys.platform == "linux2": # for Linux using the X Server
-            import vlc
-            self.video_instance = vlc.Instance()
-            self.preview_video_obj = self.video_instance.media_player_new()
             self.preview_video_obj.set_xwindow(self.preview_video_widget.winId())
 
         elif sys.platform == "win32": # for Windows
-            import vlc
-            self.video_instance = vlc.Instance()
             self.preview_video_obj = self.video_instance.media_player_new()
 
             pycobject_hwnd = self.preview_video_widget.winId()
-
             import ctypes
             ctypes.pythonapi.PyCObject_AsVoidPtr.restype = ctypes.c_void_p
             ctypes.pythonapi.PyCObject_AsVoidPtr.argtypes = [ctypes.py_object]
-
             int_hwnd = ctypes.pythonapi.PyCObject_AsVoidPtr(pycobject_hwnd)
 
             self.preview_video_obj.set_hwnd(int_hwnd)
+
         elif sys.platform == "darwin": # for MacOS
-            if not os.path.isdir('/Applications/VLC.app'):
-                vlc_msg = QtGui.QMessageBox()
-                vlc_msg.setText('VLC is not installed in your system. To be able to load audio and video files, you need to have it installed.')
-                vlc_msg.exec_()
-                self.close()
-            else:
-                import vlc
-                self.video_instance = vlc.Instance()
-                self.preview_video_obj = self.video_instance.media_player_new()
-                self.preview_video_obj.set_nsobject(self.preview_video_widget.winId())
+            self.preview_video_obj = self.video_instance.media_player_new()
+            self.preview_video_obj.set_nsobject(self.preview_video_widget.winId())
 
         self.options_panel = QtGui.QWidget(parent=self.content_panel)
         self.options_panel_animation = QtCore.QPropertyAnimation(self.options_panel, 'geometry')
@@ -1126,7 +1118,7 @@ class main_window(QtGui.QWidget):
             def paintEvent(widget, paintEvent):
                 estimated_size = 0.0
 
-                if len(self.list_of_videos) > 0:
+                if self.is_showing_options_panel and len(self.list_of_videos) > 0:
                     if self.has_menus and len(self.list_of_menus) > 0:
                         for menu in self.list_of_menus:
                             estimated_size += float(((self.selected_menu_bitrate + int(self.selected_audio_datarate.split(' ')[0]))*.00001) * self.dict_of_menus[menu][9])
@@ -2416,6 +2408,7 @@ def nowediting_panel_button_changed(self, nowediting):
         generate_effect(self, self.content_panel_animation, 'geometry', 500, [self.content_panel.x(),self.content_panel.y(),self.content_panel.width(),self.content_panel.height()], [0,80,self.content_panel.width(),self.content_panel.height()])
         generate_effect(self, self.options_panel_animation, 'geometry', 500, [self.options_panel.x(),self.options_panel.y(),self.options_panel.width(),self.options_panel.height()], [self.main_panel.width(),self.options_panel.y(),self.options_panel.width(),self.options_panel.height()])
         generate_effect(self, self.videos_player_panel_animation, 'geometry', 500, [self.videos_player_panel.x(),self.videos_player_panel.y(),self.videos_player_panel.width(),self.videos_player_panel.height()], [self.videos_player_panel.x(),self.main_panel.height(),self.videos_player_panel.width(),self.videos_player_panel.height()])
+        self.is_showing_options_panel = False
         #if self.preview_video_obj.state() in [Phonon.PlayingState]:
         if self.preview_video_obj.is_playing():
             video_pause(self)
@@ -2428,6 +2421,7 @@ def nowediting_panel_button_changed(self, nowediting):
             generate_effect(self, self.nowediting_panel_animation, 'geometry', 500, [self.nowediting_panel.x(),self.nowediting_panel.y(),self.nowediting_panel.width(),self.nowediting_panel.height()], [0,-40,self.main_panel.width(),170])
             generate_effect(self, self.content_panel_animation, 'geometry', 500, [self.content_panel.x(),self.content_panel.y(),self.content_panel.width(),self.content_panel.height()], [0,-40,self.content_panel.width(),self.content_panel.height()])
             if not self.options_panel.x() == self.main_panel.width() - 380 and (self.nowediting == 'dvd' or (self.nowediting == 'menus' and self.selected_menu) or (self.nowediting == 'videos' and self.selected_video) ):
+                self.is_showing_options_panel = True
                 generate_effect(self, self.options_panel_animation, 'geometry', 500, [self.options_panel.x(),self.options_panel.y(),self.options_panel.width(),self.options_panel.height()], [self.main_panel.width()-380,self.options_panel.y(),self.options_panel.width(),self.options_panel.height()])
 
         elif nowediting == 'dvd':
@@ -2437,6 +2431,7 @@ def nowediting_panel_button_changed(self, nowediting):
             if self.selected_menu:
                 generate_effect(self, self.menus_properties_panel_animation, 'geometry', 500, [self.menus_properties_panel.x(),self.menus_properties_panel.y(),self.menus_properties_panel.width(),self.menus_properties_panel.height()], [self.menus_properties_panel.x(),self.main_panel.height() - 125,self.menus_properties_panel.width(),self.menus_properties_panel.height()])
                 if not self.options_panel.x() == self.main_panel.width() - 380:
+                    self.is_showing_options_panel = True
                     generate_effect(self, self.options_panel_animation, 'geometry', 500, [self.options_panel.x(),self.options_panel.y(),self.options_panel.width(),self.options_panel.height()], [self.main_panel.width()-380,self.options_panel.y(),self.options_panel.width(),self.options_panel.height()])
 
         elif nowediting == 'videos':
@@ -2445,6 +2440,7 @@ def nowediting_panel_button_changed(self, nowediting):
                 self.preview.setShown(False)
 
                 if not self.options_panel.x() == self.main_panel.width() - 380:
+                    self.is_showing_options_panel = True
                     generate_effect(self, self.options_panel_animation, 'geometry', 500, [self.options_panel.x(),self.options_panel.y(),self.options_panel.width(),self.options_panel.height()], [self.main_panel.width()-380,self.options_panel.y(),self.options_panel.width(),self.options_panel.height()])
 
     self.nowediting = nowediting
@@ -3041,6 +3037,7 @@ def update_changes(self):
             if self.nowediting_is_open:
                 generate_effect(self, self.menus_properties_panel_animation, 'geometry', 500, [self.menus_properties_panel.x(),self.menus_properties_panel.y(),self.menus_properties_panel.width(),self.menus_properties_panel.height()], [self.menus_properties_panel.x(),self.main_panel.height(),self.menus_properties_panel.width(),self.menus_properties_panel.height()])
             else:
+                self.is_showing_options_panel = True
                 generate_effect(self, self.menus_properties_panel_animation, 'geometry', 500, [self.menus_properties_panel.x(),self.menus_properties_panel.y(),self.menus_properties_panel.width(),self.menus_properties_panel.height()], [self.menus_properties_panel.x(),self.main_panel.height()-125,self.menus_properties_panel.width(),self.menus_properties_panel.height()])
                 generate_effect(self, self.options_panel_animation, 'geometry', 500, [self.options_panel.x(),self.options_panel.y(),self.options_panel.width(),self.options_panel.height()], [self.main_panel.width()-380,self.options_panel.y(),self.options_panel.width(),self.options_panel.height()])
 
