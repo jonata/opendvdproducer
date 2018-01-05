@@ -286,7 +286,7 @@ class generate_dvd_thread(QtCore.QThread):
         if not os.path.isdir(os.path.join(path_tmp, 'dvd')):
             os.mkdir(os.path.join(path_tmp, 'dvd'))
 
-        final_dvd_author_xml = '<dvdauthor dest="' + os.path.join(path_tmp, 'dvd') + '">'
+        final_dvd_author_xml = '<dvdauthor dest="' + os.path.join(path_tmp, 'dvd') + '" jumppad="yes">'
 
         list_of_used_videos = []
         for video in self.list_of_videos:
@@ -474,12 +474,12 @@ class generate_dvd_thread(QtCore.QThread):
                     size = self.video_resolutions[0] + '!'
                     size_ws = self.video_resolutions[0].split('x')[0] + 'x' + str(self.height *.75) + '!'
 
-                    subprocess.call([imagemagick_convert_bin, self.dict_of_menus[menu][3], '-resize', size, '+antialias', '-threshold', str(int(self.dict_of_menus[menu][8]*100)) + '%', '-flatten', os.path.join(path_tmp, self.dict_of_menus[menu][3].split('/')[-1].split('\\')[-1][:-4] + '_hl_0.png')], startupinfo=startupinfo)
-                    subprocess.call([imagemagick_convert_bin, os.path.join(path_tmp, self.dict_of_menus[menu][3].split('/')[-1].split('\\')[-1][:-4] + '_hl_0.png'), '-threshold', str(int(self.dict_of_menus[menu][8]*100)) + '%', '-transparent', 'white', '-channel', 'RGBA', '-fill', menu_color + str('%02x' % int(self.dict_of_menus[menu][7]*255)), '-opaque', 'black', os.path.join(path_tmp, self.dict_of_menus[menu][3].split('/')[-1].split('\\')[-1][:-4] + '_hl_0.png')], startupinfo=startupinfo)
+                    subprocess.call([imagemagick_convert_bin, self.dict_of_menus[menu][3], '-resize', size, '+antialias', '-threshold', str(int(self.dict_of_menus[menu][9]*100)) + '%', '-flatten', os.path.join(path_tmp, self.dict_of_menus[menu][3].split('/')[-1].split('\\')[-1][:-4] + '_hl_0.png')], startupinfo=startupinfo)
+                    subprocess.call([imagemagick_convert_bin, os.path.join(path_tmp, self.dict_of_menus[menu][3].split('/')[-1].split('\\')[-1][:-4] + '_hl_0.png'), '-threshold', str(int(self.dict_of_menus[menu][9]*100)) + '%', '-transparent', 'white', '-channel', 'RGBA', '-fill', menu_color + str('%02x' % int(self.dict_of_menus[menu][8]*255)), '-opaque', 'black', os.path.join(path_tmp, self.dict_of_menus[menu][3].split('/')[-1].split('\\')[-1][:-4] + '_hl_0.png')], startupinfo=startupinfo)
 
-                    subprocess.call([imagemagick_convert_bin, self.dict_of_menus[menu][3], '-resize', size_ws, '+antialias', '-threshold', str(int(self.dict_of_menus[menu][8]*100)) + '%', '-flatten', os.path.join(path_tmp, self.dict_of_menus[menu][3].split('/')[-1].split('\\')[-1][:-4] + '_hl_1.png')], startupinfo=startupinfo)
+                    subprocess.call([imagemagick_convert_bin, self.dict_of_menus[menu][3], '-resize', size_ws, '+antialias', '-threshold', str(int(self.dict_of_menus[menu][9]*100)) + '%', '-flatten', os.path.join(path_tmp, self.dict_of_menus[menu][3].split('/')[-1].split('\\')[-1][:-4] + '_hl_1.png')], startupinfo=startupinfo)
                     subprocess.call([imagemagick_convert_bin, os.path.join(path_tmp, self.dict_of_menus[menu][3].split('/')[-1].split('\\')[-1][:-4] + '_hl_1.png'), '-resize', size_ws, '-matte', '-bordercolor', 'none', '-border', '0x' + str( self.height * .125 ), os.path.join(path_tmp, self.dict_of_menus[menu][3].split('/')[-1].split('\\')[-1][:-4] + '_hl_1.png')], startupinfo=startupinfo)
-                    subprocess.call([imagemagick_convert_bin, os.path.join(path_tmp, self.dict_of_menus[menu][3].split('/')[-1].split('\\')[-1][:-4] + '_hl_1.png'), '-threshold', str(int(self.dict_of_menus[menu][8]*100)) + '%', '-transparent', 'white', '-channel', 'RGBA', '-fill', menu_color + str('%02x' % int(self.dict_of_menus[menu][7]*255)), '-opaque', 'black', os.path.join(path_tmp, self.dict_of_menus[menu][3].split('/')[-1].split('\\')[-1][:-4] + '_hl_1.png')], startupinfo=startupinfo)
+                    subprocess.call([imagemagick_convert_bin, os.path.join(path_tmp, self.dict_of_menus[menu][3].split('/')[-1].split('\\')[-1][:-4] + '_hl_1.png'), '-threshold', str(int(self.dict_of_menus[menu][9]*100)) + '%', '-transparent', 'white', '-channel', 'RGBA', '-fill', menu_color + str('%02x' % int(self.dict_of_menus[menu][8]*255)), '-opaque', 'black', os.path.join(path_tmp, self.dict_of_menus[menu][3].split('/')[-1].split('\\')[-1][:-4] + '_hl_1.png')], startupinfo=startupinfo)
 
                     final_spumux_xml_0 += '<subpictures><stream><spu force="yes" start="00:00:00.00" highlight="' + os.path.join(path_tmp, self.dict_of_menus[menu][3].split('/')[-1].split('\\')[-1][:-4] + '_hl_0.png') + '">'
                     final_spumux_xml_1 += '<subpictures><stream><spu force="yes" start="00:00:00.00" highlight="' + os.path.join(path_tmp, self.dict_of_menus[menu][3].split('/')[-1].split('\\')[-1][:-4] + '_hl_1.png') + '">'
@@ -555,7 +555,16 @@ class generate_dvd_thread(QtCore.QThread):
 
                         final_spumux_xml_0 += ' />'
                         final_spumux_xml_1 += ' />'
-                final_dvd_author_xml += '<post>jump cell 1;</post>'
+                final_dvd_author_xml += '<post>'
+                if self.dict_of_menus[menu][7]:
+                    jump_to = self.dict_of_menus[menu][7]
+                    if jump_to in self.list_of_menus:
+                        final_dvd_author_xml += 'call menu ' + str(self.list_of_menus.index(jump_to) + 1) + ';'
+                    elif not ' > ' in jump_to and jump_to in list_of_used_videos:
+                        final_dvd_author_xml += 'jump title ' + str(list_of_used_videos.index(jump_to) + 1) + ';'
+                else:
+                    final_dvd_author_xml += 'jump cell 1;'
+                final_dvd_author_xml += '</post>'
                 final_dvd_author_xml += '</pgc>'
                 final_spumux_xml_0 += '</spu></stream></subpictures>'
                 final_spumux_xml_1 += '</spu></stream></subpictures>'
@@ -1087,7 +1096,7 @@ class main_window(QtGui.QWidget):
 
         self.video_instance = vlc.Instance()
         self.preview_video_obj = self.video_instance.media_player_new()
-        
+
         if sys.platform == "linux2": # for Linux using the X Server
             self.preview_video_obj.set_xwindow(self.preview_video_widget.winId())
 
@@ -1119,7 +1128,7 @@ class main_window(QtGui.QWidget):
                 if self.is_showing_options_panel and len(self.list_of_videos) > 0:
                     if self.has_menus and len(self.list_of_menus) > 0:
                         for menu in self.list_of_menus:
-                            estimated_size += float(((self.selected_menu_bitrate + int(self.selected_audio_datarate.split(' ')[0]))*.00001) * self.dict_of_menus[menu][9])
+                            estimated_size += float(((self.selected_menu_bitrate + int(self.selected_audio_datarate.split(' ')[0]))*.00001) * self.dict_of_menus[menu][10])
                     for video in self.list_of_videos:
                         final_length = self.dict_of_videos[video][5]
                         if self.dict_of_videos[video][6]:
@@ -2115,6 +2124,13 @@ class main_window(QtGui.QWidget):
         self.menus_properties_panel_main_menu_checkbox_background = QtGui.QLabel(parent=self.menus_properties_panel_main_menu_checkbox)
         self.menus_properties_panel_main_menu_checkbox_background.setGeometry(0,0,self.menus_properties_panel_main_menu_checkbox.width(),self.menus_properties_panel_main_menu_checkbox.height())
 
+        self.menus_properties_panel_jumpto_label = QtGui.QLabel('AT THE END, JUMP TO', parent=self.menus_properties_panel)
+        self.menus_properties_panel_jumpto_label.setGeometry(820,30,150,15)
+
+        self.menus_properties_panel_jumpto = QtGui.QComboBox(parent=self.menus_properties_panel)
+        self.menus_properties_panel_jumpto.setGeometry(820,45,150,25)
+        self.menus_properties_panel_jumpto.activated.connect(lambda:menus_properties_panel_jumpto_selected(self))
+
         self.lock_finalize_panel = QtGui.QWidget(parent=self.main_panel)
         self.lock_finalize_panel_animation = QtCore.QPropertyAnimation(self.lock_finalize_panel, 'geometry')
         self.lock_finalize_panel_animation.setEasingCurve(QtCore.QEasingCurve.OutCirc)
@@ -2714,6 +2730,11 @@ def read_project_file(self):
                 else:
                     menu_list_for_dict.append(False)
 
+                if 'post="' in menu_item.split('>')[0] and not menu_item.split('>')[0].split('post="')[1].split('"')[0] == 'False':
+                    menu_list_for_dict.append(menu_item.split('>')[0].split('post="')[1].split('"')[0])
+                else:
+                    menu_list_for_dict.append(False)
+
                 if 'transparency="' in menu_item.split('>')[0]:
                     menu_list_for_dict.append(float(menu_item.split('>')[0].split('transparency="')[1].split('"')[0]))
                 else:
@@ -2823,9 +2844,10 @@ def write_project_file(self):
         if self.dict_of_menus[menu][5]:
             final_project_file += ' sound="' + get_relative_path(self, self.dict_of_menus[menu][5]) + '"'
         final_project_file += ' main_menu="' + str(self.dict_of_menus[menu][6]) + '"'
-        final_project_file += ' transparency="' + str(self.dict_of_menus[menu][7]) + '"'
-        final_project_file += ' border="' + str(self.dict_of_menus[menu][8]) + '"'
-        final_project_file += ' length="' + str(self.dict_of_menus[menu][9]) + '"'
+        final_project_file += ' post="' + str(self.dict_of_menus[menu][7]) + '"'
+        final_project_file += ' transparency="' + str(self.dict_of_menus[menu][8]) + '"'
+        final_project_file += ' border="' + str(self.dict_of_menus[menu][9]) + '"'
+        final_project_file += ' length="' + str(self.dict_of_menus[menu][10]) + '"'
         final_project_file += '>'
         for button in self.dict_of_menus[menu][1]:
             final_project_file += '<button name="' + button + '" x="' + str(self.dict_of_menus[menu][2][button][0]) + '" y="' + str(self.dict_of_menus[menu][2][button][1]) + '" width="' + str(self.dict_of_menus[menu][2][button][2]) + '" height="' + str(self.dict_of_menus[menu][2][button][3]) + '" jump_to="' + str(self.dict_of_menus[menu][2][button][4])+ '" direction_top="' + str(self.dict_of_menus[menu][2][button][5][0]) + '" direction_right="' + str(self.dict_of_menus[menu][2][button][5][1]) + '" direction_bottom="' + str(self.dict_of_menus[menu][2][button][5][2]) + '" direction_left="' + str(self.dict_of_menus[menu][2][button][5][3]) + '"></button>'
@@ -2949,11 +2971,11 @@ def update_changes(self):
     if self.selected_menu:
         self.no_preview_label.setShown(False)
 
-        self.menus_properties_panel_transparency_slider_value.setText(str(int(self.dict_of_menus[self.selected_menu][7]*100)) + '%')
-        self.menus_properties_panel_border_slider_value.setText(str(int(self.dict_of_menus[self.selected_menu][8]*100)) + '%')
+        self.menus_properties_panel_transparency_slider_value.setText(str(int(self.dict_of_menus[self.selected_menu][8]*100)) + '%')
+        self.menus_properties_panel_border_slider_value.setText(str(int(self.dict_of_menus[self.selected_menu][9]*100)) + '%')
 
-        self.menus_properties_panel_transparency_slider.setValue(int(self.dict_of_menus[self.selected_menu][7]*100))
-        self.menus_properties_panel_border_slider.setValue(int(self.dict_of_menus[self.selected_menu][8]*100))
+        self.menus_properties_panel_transparency_slider.setValue(int(self.dict_of_menus[self.selected_menu][8]*100))
+        self.menus_properties_panel_border_slider.setValue(int(self.dict_of_menus[self.selected_menu][9]*100))
 
         self.menus_properties_panel_background_file_preview_background.setPixmap(os.path.join(path_tmp, self.selected_menu + '.preview.png'))
 
@@ -3078,7 +3100,7 @@ def update_changes(self):
     if len(self.list_of_videos) > 0:
         if self.has_menus and len(self.list_of_menus) > 0:
             for menu in self.list_of_menus:
-                estimated_size += float(((self.selected_menu_bitrate + int(self.selected_audio_datarate.split(' ')[0]))*.001) * self.dict_of_menus[menu][9])
+                estimated_size += float(((self.selected_menu_bitrate + int(self.selected_audio_datarate.split(' ')[0]))*.001) * self.dict_of_menus[menu][10])
         for video in self.list_of_videos:
             final_length = self.dict_of_videos[video][5]
             if self.dict_of_videos[video][6]:
@@ -3307,6 +3329,7 @@ def menu_selected(self):
     nowediting_panel_button_changed(self, self.nowediting)
     populate_menu_buttons_list(self)
     clean_buttons_selection(self)
+    populate_jumpto_menus(self)
     update_changes(self)
 
 def duplicate_menu(self):
@@ -3354,9 +3377,10 @@ def add_menu(self):
                                                 None,                                   # [4] Cor do Overlay (str)
                                                 None,                                   # [5] Arquivo de som (str)
                                                 mainmenu,                               # [6] Se é o menu principal
-                                                .5,                                     # [7] Transparencia
-                                                .5,                                     # [8] Borda dura
-                                                length                                  # [9] Duracao em segundos
+                                                False,                                  # [7] If jump to at end
+                                                .5,                                     # [8] Transparencia
+                                                .5,                                     # [9] Borda dura
+                                                length                                  # [10] Duracao em segundos
                                             ]
 
             generate_preview_image(self, menu_name, self.dict_of_menus)
@@ -3428,8 +3452,8 @@ def preview_overlay(self):
             menu_color = '#FFFFFF'
             if self.dict_of_menus[menu][4]:
                 menu_color = self.dict_of_menus[menu][4]
-            subprocess.call([imagemagick_convert_bin, get_preview_file(self, self.dict_of_menus[menu][3]), '-resize', size, '+antialias', '-threshold', str(int(self.dict_of_menus[menu][8]*100)) + '%', '-flatten', os.path.join(path_tmp, self.dict_of_menus[menu][3].split('/')[-1].split('\\')[-1][:-4] + '_hl.preview.png')], startupinfo=startupinfo)
-            subprocess.call([imagemagick_convert_bin, os.path.join(path_tmp, self.dict_of_menus[menu][3].split('/')[-1].split('\\')[-1][:-4] + '_hl.preview.png'), '-threshold', str(int(self.dict_of_menus[menu][8]*100)) + '%', '-transparent', 'white', '-channel', 'RGBA', '-fill', menu_color + str('%02x' % int(self.dict_of_menus[menu][7]*255)), '-opaque', 'black', os.path.join(path_tmp, self.dict_of_menus[menu][3].split('/')[-1].split('\\')[-1][:-4] + '_hl.preview.png')], startupinfo=startupinfo)
+            subprocess.call([imagemagick_convert_bin, get_preview_file(self, self.dict_of_menus[menu][3]), '-resize', size, '+antialias', '-threshold', str(int(self.dict_of_menus[menu][9]*100)) + '%', '-flatten', os.path.join(path_tmp, self.dict_of_menus[menu][3].split('/')[-1].split('\\')[-1][:-4] + '_hl.preview.png')], startupinfo=startupinfo)
+            subprocess.call([imagemagick_convert_bin, os.path.join(path_tmp, self.dict_of_menus[menu][3].split('/')[-1].split('\\')[-1][:-4] + '_hl.preview.png'), '-threshold', str(int(self.dict_of_menus[menu][9]*100)) + '%', '-transparent', 'white', '-channel', 'RGBA', '-fill', menu_color + str('%02x' % int(self.dict_of_menus[menu][8]*255)), '-opaque', 'black', os.path.join(path_tmp, self.dict_of_menus[menu][3].split('/')[-1].split('\\')[-1][:-4] + '_hl.preview.png')], startupinfo=startupinfo)
 
     update_changes(self)
 
@@ -3471,14 +3495,14 @@ def transparency_slider_changing(self):
     self.menus_properties_panel_transparency_slider_value.setText(str(int(self.menus_properties_panel_transparency_slider.value())) + '%')
 
 def transparency_slider_changed(self):
-    self.dict_of_menus[self.selected_menu][7] = self.menus_properties_panel_transparency_slider.value()/100.0
+    self.dict_of_menus[self.selected_menu][8] = self.menus_properties_panel_transparency_slider.value()/100.0
     preview_overlay(self)
 
 def border_slider_changing(self):
     self.menus_properties_panel_border_slider_value.setText(str(int(self.menus_properties_panel_border_slider.value())) + '%')
 
 def border_slider_changed(self):
-    self.dict_of_menus[self.selected_menu][8] = self.menus_properties_panel_border_slider.value()/100.0
+    self.dict_of_menus[self.selected_menu][9] = self.menus_properties_panel_border_slider.value()/100.0
     preview_overlay(self)
 
 ###################################################################################################
@@ -3715,6 +3739,12 @@ def video_selected(self):
 def button_jumpto_selected(self):
     self.dict_of_menus[self.selected_menu][2][self.selected_menu_button][4] = self.options_panel_menu_buttons_jumpto.currentText()
 
+def menus_properties_panel_jumpto_selected(self):
+    if self.menus_properties_panel_jumpto.currentIndex() == 0:
+        self.dict_of_menus[self.selected_menu][7] = False
+    else:
+        self.dict_of_menus[self.selected_menu][7] = self.menus_properties_panel_jumpto.currentText()
+
 def video_play(self):
     self.preview_video_obj.play()
 
@@ -3766,6 +3796,21 @@ def populate_jumpto(self):
                 list_of_chapter_groups.append(str(chapter).split(' ')[0])
                 final_list.append(video + ' > ' + str(chapter).split(' ')[0])
     self.options_panel_menu_buttons_jumpto.addItems(final_list)
+
+def populate_jumpto_menus(self):
+    self.menus_properties_panel_jumpto.clear()
+    final_list = ['Play again (loop)']
+    for menu in self.list_of_menus:
+        if not menu == self.selected_menu:
+            final_list.append(menu)
+    for video in self.list_of_videos:
+        final_list.append(video)
+    self.menus_properties_panel_jumpto.addItems(final_list)
+
+    if self.dict_of_menus[self.selected_menu][7]:
+        self.menus_properties_panel_jumpto.setCurrentIndex(self.menus_properties_panel_jumpto.findText(self.dict_of_menus[self.selected_menu][7]))
+    else:
+        self.menus_properties_panel_jumpto.setCurrentIndex(0)
 
 def set_intro_video(self):
     self.dict_of_videos[self.selected_video][3] = self.options_panel_video_intro_video_checkbox.isChecked()
